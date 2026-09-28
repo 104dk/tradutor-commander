@@ -104,6 +104,7 @@
     .list-panel .status{margin-top:9px;padding:9px 11px}
     .list-panel .lsearch{margin-top:11px;padding:9px 12px;font-size:13.5px}
     .list-panel .list-scroll{margin-top:8px}
+    .dd-row{display:flex;align-items:center;gap:8px;flex-shrink:0}
     .dd-wrap{position:relative;flex-shrink:0}
     .dd-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:4px;background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));color:#211505;font-size:10.5px;font-weight:700;border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
     .dd-badge.hidden{display:none}
@@ -170,7 +171,8 @@
     .h-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .hgrp{display:inline-flex;gap:8px;align-items:center;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--ink-2);box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
     .hgrp .btn-action,.hgrp .icon-btn{border-radius:8px;border-width:0;box-shadow:none}
-    .btn-action{background:transparent;border:1px solid var(--line);color:var(--text);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+    .btn-action{background:transparent;border:1px solid var(--line);color:var(--text);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer}
+    .btn-action:active{transform:scale(.97)}
     .btn-action svg{width:15px;height:15px;opacity:.85}
     .btn-action.primary{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));color:#211505;font-weight:700;border:1px solid var(--gold-bright);box-shadow:0 4px 14px -6px rgba(220,177,74,.6)}
     .btn-action.primary:hover{box-shadow:0 0 0 3px rgba(242,204,107,.2),0 4px 16px -6px rgba(220,177,74,.8)}
@@ -197,6 +199,10 @@
       .h-actions .icon-btn{margin-left:0}
       #verifyBtn{grid-area:1/1}#translateAllBtn{grid-area:1/2}#savePdfBtn{grid-area:1/3}
       #statsBtn{grid-area:2/1}#calcLifeBtn{grid-area:2/2}#reload{grid-area:2/3;color:var(--muted)}
+      /* "Baixar app" ocupa a 3ª linha inteira (grid-area não é herdável, então precisa
+         ser declarado aqui como os outros). Dentro do APK o link é display:none e a
+         grade volta a ter 2 linhas. */
+      #dlApp{grid-area:3/1/4/4}
       .h-actions .btn-action svg,.h-actions .icon-btn svg{width:16px;height:16px}
       .btn-action[data-short] .lbl{display:none}
       .btn-action[data-short]::after{content:attr(data-short)}
@@ -213,9 +219,14 @@
       .panel-head{margin-bottom:10px;padding-bottom:10px}
       .row button{padding:10px 6px;font-size:13.5px;min-height:44px}
       .lsearch{min-height:44px}
-      #savedDecksBtn{min-height:44px}
+      #savedDecksBtn,#addDeckBtn{min-height:44px}
       .h-actions .btn-action:hover,.h-actions .icon-btn:hover{transform:none}
       main.wrap{padding:12px 10px calc(118px + var(--safe-b))}
+      /* O botão "Baixar app" vira a 3ª fileira da barra fixa de baixo (7 botões em
+         grade de 3 colunas), então o conteúdo precisa de mais folga embaixo.
+         Só quando ele existe: dentro do app Android o botão é escondido e a barra
+         volta a ter 2 fileiras. */
+      body.has-dl main.wrap{padding-bottom:calc(164px + var(--safe-b))}
       body{overflow-x:hidden}
     }
     .btn-action:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-1px)}
@@ -226,6 +237,7 @@
 #pdfExport{position:fixed;top:0;left:-20000px;width:794px;pointer-events:none;background:#fff;font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#1a1a2e}
     #pdfExport .pdf-page{width:794px;height:1123px;padding:20px 26px;box-sizing:border-box;overflow:hidden;background:#fff}
     #pdfExport .pdf-title{font-size:18px;font-weight:800;text-align:center;margin-bottom:10px;color:#1a1a2e;border-bottom:2px solid #b8892f;padding-bottom:7px}
+    #pdfExport .pdf-sub{font-size:12.5px;font-weight:600;font-style:italic;text-align:center;color:#8a6d2c;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     #pdfExport .pdf-grid{display:grid;grid-template-columns:repeat(3,240px);gap:10px;justify-content:center}
     #pdfExport .pdf-card{width:240px;height:336px;border:2px solid #1a1a2e;border-radius:13px;background:#111;position:relative;display:block;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.18)}
     #pdfExport .pdf-card-art{position:absolute;top:0;left:0;width:100%;height:185px;background:#222}
@@ -264,6 +276,30 @@
     .stats-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
     .chip{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;background:var(--ink-3);border:1px solid var(--line);color:var(--text)}
     .chip.alt{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505}
+    /* Chip "nomes" das stats: abre a lista de cartas do deck */
+    .chip-btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+    .chip-btn:hover{border-color:var(--gold);color:var(--gold-bright)}
+    .chip-btn::after{content:"▾";font-size:10px;opacity:.75}
+    .chip-btn[aria-expanded="true"]{border-color:var(--gold-bright);color:var(--gold-bright)}
+    .chip-btn[aria-expanded="true"]::after{content:"▴"}
+    /* Lista de cartas do deck */
+    .stn-head,.stn-row{display:flex;align-items:baseline;gap:9px;padding:7px 0;border-bottom:1px solid var(--line-soft)}
+    .stn-row:last-child{border-bottom:0}
+    .stn-head{font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);position:sticky;top:-15px;background:linear-gradient(180deg,var(--ink-3) 70%,transparent);z-index:1}
+    .stn-qty{flex-shrink:0;min-width:32px;text-align:center;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;color:var(--gold);background:var(--ink-4);border:1px solid var(--line-soft);border-radius:6px;padding:1px 4px;font-variant-numeric:tabular-nums}
+    .stn-nm{flex:1;min-width:0}
+    .stn-en{display:block;font-family:'Inter',sans-serif;font-size:13px;font-style:normal;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .stn-pt{display:block;font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .stn-src{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+    .stn-src.pt{color:var(--gold-bright);border-color:var(--gold-dim)}
+    .stn-src.auto{color:var(--ember);border-color:var(--ember)}
+    @media (max-width:700px){.stn-en{font-size:14px}.stn-pt{font-size:12.5px}}
+    /* Modal do nome do deck (reusa .lc-modal/.lc-box) */
+    .dn-field label{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+    .dn-field input{width:100%;min-height:48px;font-size:16px}
+    .dn-hint{margin:8px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted)}
+    .dn-actions{display:flex;gap:9px;margin-top:18px}
+    .dn-actions button{flex:1;min-height:48px}
     .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
     .bar-lb{flex:0 0 92px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
     .bar-lb span{color:var(--text);font-variant-numeric:tabular-nums}
@@ -400,7 +436,10 @@
           <button id="translateAllBtn" class="btn-action" type="button" disabled title="Traduzir as cartas pendentes do deck (em paralelo, usa cache sempre que possível)" data-short="Traduzir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span class="lbl">Traduzir pendentes</span></button>
         </div>
         <div class="hgrp" role="group" aria-label="Exportação">
-          <button id="savePdfBtn" class="btn-action primary" type="button" disabled title="Salvar deck como PDF com imagens e traduções PT" data-short="PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl">Salvar deck em PDF</span></button>
+          <button id="savePdfBtn" class="btn-action primary" type="button" disabled title="Salvar o deck como PDF com imagens e traduções PT (você escolhe o nome do arquivo)" data-short="PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl">Salvar</span></button>
+        </div>
+        <div class="hgrp" role="group" aria-label="App Android">
+          <a id="dlApp" class="btn-action" href="DeckTradutor.apk?v=1.1.0" download title="Baixar o app para Android (Android 6.0 ou superior)" data-short="App"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg><span class="lbl">Baixar app</span></a>
         </div>
         <div class="hgrp" role="group" aria-label="Ferramentas">
           <button id="statsBtn" class="btn-action" type="button" title="Ver estatísticas do deck (cores, tipos, curva de mana)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 13v4"/><path d="M12 9v8"/><path d="M17 5v12"/></svg>Stats</button>
@@ -418,10 +457,14 @@
     <section class="panel list-panel">
       <div class="panel-head">
         <div><h2>Lista de cartas</h2><span class="hint" id="listInfo">0 cartas · 0 nomes</span></div>
-        <div class="dd-wrap">
-          <button id="savedDecksBtn" class="btn-action" type="button" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Decks salvos<span id="savedDecksBadge" class="dd-badge hidden">0</span></button>
-          <div id="savedDecksMenu" class="dd-menu hidden" role="menu"></div>
+        <div class="dd-row">
+          <button id="addDeckBtn" class="btn-action" type="button" title="Importar um deck de um arquivo do dispositivo (.txt)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>+ deck</button>
+          <div class="dd-wrap">
+            <button id="savedDecksBtn" class="btn-action" type="button" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Decks salvos<span id="savedDecksBadge" class="dd-badge hidden">0</span></button>
+            <div id="savedDecksMenu" class="dd-menu hidden" role="menu"></div>
+          </div>
         </div>
+        <input type="file" id="deckFileInput" class="hidden" accept=".txt,.csv,.md,text/plain,text/csv" />
       </div>
       <textarea id="list" spellcheck="false" placeholder="1 por linha · qtd opcional:&#10;1 Kinnan, Bonder Prodigy&#10;12 Forest&#10;2x Snap&#10;# comentários são ignorados">1 Kinnan, Bonder Prodigy
 1 Birds of Paradise
@@ -509,9 +552,28 @@
   </div>
   <div class="stats-body">
     <div class="stats-chips" id="stChips"></div>
+    <div class="stats-card hidden" id="stNamesCard">
+      <h3>Cartas do deck</h3>
+      <div id="stNames"></div>
+    </div>
     <div class="stats-card"><h3>Cores (mana cost)</h3><div id="stColors"></div></div>
     <div class="stats-card"><h3>Tipos de carta</h3><div id="stTypes"></div></div>
     <div class="stats-card"><h3>Custo de mana convertido</h3><div id="stCurve"></div></div>
+  </div>
+</div>
+<div id="deckNameModal" class="lc-modal hidden">
+  <div class="lc-box">
+    <h2>Nome do deck</h2>
+    <p class="lc-sub">O PDF com as cartas traduzidas será salvo em Downloads com esse nome.</p>
+    <div class="dn-field">
+      <label for="deckNameInput">Nome do deck</label>
+      <input id="deckNameInput" type="text" placeholder="Ex.: Barato de Baralhar" autocomplete="off" spellcheck="false" maxlength="80" />
+    </div>
+    <p class="dn-hint" id="deckNameHint"></p>
+    <div class="dn-actions">
+      <button type="button" class="ghost" id="deckNameCancel">Cancelar</button>
+      <button type="button" class="primary" id="deckNameOk">Salvar PDF</button>
+    </div>
   </div>
 </div>
 <div id="pdfExport"></div>
@@ -1884,6 +1946,7 @@ function statBarRow(label,count,max,color){
   return `<div class="bar-row"><div class="bar-lb">${label}<span>${count}</span></div>
     <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
+let statNamesOpen=false;
 function refreshStats(){
   const chips=$("stChips"),cColors=$("stColors"),cTypes=$("stTypes"),cCurve=$("stCurve");
   if(!chips||!cColors||!cTypes||!cCurve)return;
@@ -1894,8 +1957,9 @@ function refreshStats(){
   }
   const rows=deckStatRows();
   const total=rows.length;
+  // "nomes" abre a lista de cartas do deck; "cartas" é só informativo.
   chips.innerHTML=`
-    <div class="chip">${state.items.length} nomes</div>
+    <button type="button" class="chip chip-btn" id="stNamesBtn" aria-expanded="${statNamesOpen?"true":"false"}" title="Ver as cartas do deck">${state.items.length} nomes</button>
     <div class="chip alt">${total} cartas</div>`;
   // Cores (por cor presente no mana cost)
   const colorCounts={};
@@ -1915,9 +1979,51 @@ function refreshStats(){
   const curMax=Math.max(1,...cur);
   const labels=["0","1","2","3","4","5","6","7","7+"];
   cCurve.innerHTML=labels.map((l,i)=>statBarRow(l,cur[i],curMax,"#7c93ff")).join("");
+  if(statNamesOpen)renderStatNames();
+}
+// Lista de cartas do deck (o chip "nomes"). Só o que já está em cache: sem rede,
+// sem travar a abertura. Nomes vem do Scryfall; os PT de onde houver.
+function statNameRow(it){
+  let pt="",src="";
+  try{
+    const s=localStorage.getItem(cacheKey(it.name));
+    if(s){
+      const entry=JSON.parse(s);
+      if(entry&&entry.en){
+        if(entry.pt&&entry.pt.printed_name!=null){pt=entry.pt.printed_name;src="pt"}
+        else{
+          const auto=getUsableAutoCache(it.name,entry.en);
+          if(auto&&auto.name){pt=auto.name;src="auto"}
+        }
+      }
+    }
+  }catch(_){}
+  const srcTag=src?`<span class="stn-src ${src}">${src==="pt"?"oficial":"auto"}</span>`:"";
+  return `<div class="stn-row"><span class="stn-qty">${it.qty}&times;</span>
+    <span class="stn-nm"><span class="stn-en">${esc(it.name)}</span>${pt?`<span class="stn-pt">${esc(pt)}</span>`:""}</span>${srcTag}</div>`;
+}
+function renderStatNames(){
+  const box=$("stNames"),card=$("stNamesCard");
+  if(!box||!card)return;
+  if(!state.items.length){
+    box.innerHTML=`<div class="stats-empty">Carregue um deck primeiro.</div>`;
+    card.classList.remove("hidden");
+    return;
+  }
+  const head=`<div class="stn-head"><span style="flex:0 0 32px"></span><span style="flex:1">Carta (nome original / tradução)</span></div>`;
+  box.innerHTML=head+state.items.map(statNameRow).join("");
+}
+function toggleStatNames(){
+  statNamesOpen=!statNamesOpen;
+  const card=$("stNamesCard"),btn=$("stNamesBtn");
+  if(card)card.classList.toggle("hidden",!statNamesOpen);
+  if(btn)btn.setAttribute("aria-expanded",statNamesOpen?"true":"false");
+  if(statNamesOpen)renderStatNames();
 }
 function openStats(){
+  statNamesOpen=false;
   refreshStats();
+  $("stNamesCard").classList.add("hidden");
   $("statsBox").classList.remove("hidden");
   document.body.style.overflow="hidden";
 }
@@ -1983,7 +2089,34 @@ async function translatePendingAll(){
 }
 
 // ===== Salvar Deck (PDF) =====
-async function exportPdf(){
+// Nome do arquivo a partir do nome que o usuário escolheu. Mesmo do Java
+// (MainActivity.sanitizeFileName), para o arquivo sair igual no site e no app.
+function pdfFileName(deckName){
+  const base=String(deckName||"").replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim().slice(0,80);
+  return (base||"deck_commander_PT")+".pdf";
+}
+// Pede o nome do deck antes de gerar o PDF. Não usamos prompt() de propósito: o app
+// depende do diálogo padrão de JS do WebView, que é justamente o que costuma falhar
+// em silêncio num WebView. Um modal na página é previsível e idêntico no site e no app.
+function askDeckNameForPdf(){
+  if(state.busy)return;
+  if(!state.items.length){setStatus("Carregue um deck primeiro.","warn");return}
+  const input=$("deckNameInput"),hint=$("deckNameHint");
+  // Sugere o deck salvo cuja lista é exatamente a atual; senão, se só houver um.
+  const decks=loadSavedDecks();
+  const cur=$("list").value;
+  const hit=decks.find(d=>d.text===cur)||(decks.length===1?decks[0]:null);
+  input.value=hit?hit.name:"";
+  hint.textContent=input.value
+    ?"Já existe um deck salvo com esse nome — o PDF vai usar o mesmo."
+    :"Esse nome vira o arquivo no Downloads e o subtítulo do PDF.";
+  $("deckNameModal").classList.remove("hidden");
+  try{setTimeout(()=>{input.focus();input.select()},60)}catch(_){}
+}
+function closeDeckNameModal(){
+  $("deckNameModal").classList.add("hidden");
+}
+async function exportPdf(deckName){
   if(state.busy)return;
   if(!state.items.length){setStatus("Carregue um deck primeiro.","warn");return}
   if(typeof html2canvas==="undefined"||typeof jspdf==="undefined"){
@@ -2045,7 +2178,9 @@ async function exportPdf(){
               <div class="pdf-card-text">${textToHtml(c.ptRules)||"—"}</div>
             </div>
           </div>`;
-    const TITLE='<div class="pdf-title">Commander — Deck Traduzido (PT-BR)</div>';
+    // O nome do deck fica dentro do título, acima da linha divisória.
+    const TITLE='<div class="pdf-title">Commander — Deck Traduzido (PT-BR)'+
+      (deckName?`<div class="pdf-sub">${esc(deckName)}</div>`:"")+'</div>';
     const PER_PAGE=9,pages=[];
     for(let i=0;i<cards.length;i+=PER_PAGE){
       const slice=cards.slice(i,i+PER_PAGE),rows=[];
@@ -2110,7 +2245,7 @@ async function exportPdf(){
     }
     ovUpd("Montando prévia…",100);
     setStatus("Montando prévia…");
-    showPdfPreview(pdf.output("bloburl"));
+    showPdfPreview(pdf.output("bloburl"),pdfFileName(deckName));
     if(failed||nfFb){
       const names=failedNames.concat(nfFbNames).slice(0,6).map(n=>`"${n}"`).join(", ")+(failedNames.length+nfFbNames.length>6?"…":"");
       const parts=[`PDF gerado — ${official} oficiais, ${translated} traduzidas.`];
@@ -2131,14 +2266,14 @@ async function exportPdf(){
 }
 
 // ===== Prévia do PDF (modal in-app) =====
-function showPdfPreview(url){
+function showPdfPreview(url,fileName){
   const narrow=isNarrow();
   const box=document.createElement("div");
   box.className="preview-box";
   // No celular (iOS em especial) o Safari costuma não renderizar PDF em iframe
   // com blob URL — a prévia fica em branco. Ali mostramos um aviso com ação direta.
   box.innerHTML=`<div class="preview-bar">
-    <span class="preview-title">deck_commander_PT.pdf</span>
+    <span class="preview-title">${esc(fileName)}</span>
     <div class="preview-actions">
       ${narrow?`<button type="button" class="btn-pdf open">Abrir</button>`:""}
       <button type="button" class="btn-pdf download">${narrow?"Salvar":"Baixar PDF"}</button>
@@ -2153,8 +2288,11 @@ function showPdfPreview(url){
   const openBtn=box.querySelector(".open");
   if(openBtn)openBtn.addEventListener("click",()=>{window.open(url,"_blank")});
   box.querySelector(".download").addEventListener("click",()=>{
+    // No app Android o DownloadListener intercepta este blob: e o nome chega no
+    // bridge por window.__deckPdfName (o Java sanitiza e grava em Downloads/decks).
+    try{window.__deckPdfName=fileName}catch(_){}
     const a=document.createElement("a");
-    a.href=url;a.download="deck_commander_PT.pdf";
+    a.href=url;a.download=fileName;
     document.body.appendChild(a);a.click();a.remove();
     close();
   });
@@ -2186,27 +2324,68 @@ function openSavedDecksMenu(open){
   menu.classList.toggle("hidden",!open);
   btn.setAttribute("aria-expanded",open?"true":"false");
 }
-function saveCurrentDeck(){
-  const text=$("list").value;
+// Grava um deck em "Decks salvos" com o nome informado. Compartilhado pelo botão
+// "Salvar" e pela importação do "+ deck", para os dois reaproveitarem a mesma regra
+// de nome duplicado, sobrescrita e limite. Devolve true/false: o chamador precisa só
+// saber se o deck foi de fato gravado (false = o usuário recusou a sobrescrita).
+function saveDeckAs(name,text){
+  name=String(name||"").trim();
+  if(!name)return false;
   const items=parseList(text);
-  if(!items.length){setStatus("Nada para salvar — cole ao menos uma carta na lista.","err");return}
+  if(!items.length){setStatus("Nada para salvar — o arquivo não tem nenhuma carta na lista.","err");return false}
   const decks=loadSavedDecks();
-  let name=prompt("Nome para este deck:","");
-  if(name==null)return;
-  name=name.trim();
-  if(!name){setStatus("Dê um nome ao deck para salvar.","err");return}
   const total=items.reduce((s,x)=>s+x.qty,0);
   const existing=decks.find(d=>d.name.toLowerCase()===name.toLowerCase());
   if(existing){
-    if(!confirm(`Já existe um deck salvo chamado "${name}". Sobrescrever com a lista atual?`))return;
+    if(!confirm(`Já existe um deck salvo chamado "${name}". Sobrescrever com a lista atual?`))return false;
     existing.text=text;existing.savedAt=Date.now();existing.count=total;existing.names=items.length;
   }else{
-    if(decks.length>=MAX_SAVED_DECKS){setStatus(`Limite de ${MAX_SAVED_DECKS} decks salvos atingido. Apague um deck salvo antes de adicionar outro.`,"err");return}
+    if(decks.length>=MAX_SAVED_DECKS){setStatus(`Limite de ${MAX_SAVED_DECKS} decks salvos atingido. Apague um deck salvo antes de adicionar outro.`,"err");return false}
     decks.push({id:String(Date.now())+Math.random().toString(36).slice(2,7),name,text,savedAt:Date.now(),count:total,names:items.length});
   }
   writeSavedDecks(decks);
   renderSavedDecks();
   setStatus(`Deck "${name}" salvo (${items.length} nomes).`,"ok");
+  return true;
+}
+function saveCurrentDeck(){
+  const text=$("list").value;
+  if(!parseList(text).length){setStatus("Nada para salvar — cole ao menos uma carta na lista.","err");return}
+  const name=prompt("Nome para este deck:","");
+  if(name==null)return;
+  if(!name.trim()){setStatus("Dê um nome ao deck para salvar.","err");return}
+  saveDeckAs(name,text);
+}
+// ===== Importar deck de um arquivo do dispositivo =====
+// O input type=file resolve sozinho no site. No app Android o WebView IGNORA o input
+// se o host não implementar onShowFileChooser (MainActivity faz isso), então o botão
+// funciona nos dois sem código específico por plataforma aqui.
+// Só removemos a extensão se for uma que o importador reconhece: senão um arquivo
+// sem extensão real ("lista.v2", "sem.extensao") perdia o próprio nome.
+function deckNameFromFile(fname){
+  const raw=String(fname||"").trim();
+  const base=raw.replace(/\.(txt|csv|md)$/i,"");
+  return base.replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim().slice(0,80)||"deck";
+}
+function onDeckFileChosen(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onerror=()=>setStatus("Não foi possível ler o arquivo.","err");
+  reader.onload=()=>{
+    const text=String(reader.result||"").replace(/^\uFEFF/,"");
+    if(!text.trim()){setStatus("O arquivo está vazio.","err");return}
+    const name=deckNameFromFile(file.name);
+    const items=parseList(text);
+    if(!items.length){setStatus(`Nenhuma carta reconhecida em "${file.name}". O formato esperado é 1 por linha, com quantidade opcional.`,"err");return}
+    // Só escreve na lista depois de confirmar o salvamento: assim o nome vem do
+    // arquivo e a lista e "Decks salvos" nunca divergem.
+    if(!saveDeckAs(name,text))return;
+    $("list").value=text;
+    openSavedDecksMenu(false);
+    $("load").click();
+    setStatus(`Deck "${name}" importado de ${file.name} (${items.length} nomes).`,"ok");
+  };
+  reader.readAsText(file);
 }
 function loadSavedDeck(id){
   const d=loadSavedDecks().find(x=>x.id===id);
@@ -2328,10 +2507,27 @@ $("lbody").addEventListener("keydown",e=>{
 });
 $("verifyBtn").addEventListener("click",verifyTranslations);
 $("translateAllBtn").addEventListener("click",translatePendingAll);
-$("savePdfBtn").addEventListener("click",exportPdf);
+$("savePdfBtn").addEventListener("click",askDeckNameForPdf);
+$("deckNameOk").addEventListener("click",()=>{
+  const name=$("deckNameInput").value.trim();
+  closeDeckNameModal();
+  exportPdf(name);
+});
+$("deckNameCancel").addEventListener("click",closeDeckNameModal);
+$("deckNameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("deckNameOk").click()}});
+$("deckNameModal").addEventListener("click",e=>{if(e.target===$("deckNameModal"))closeDeckNameModal()});
+$("stChips").addEventListener("click",e=>{if(e.target.closest("#stNamesBtn"))toggleStatNames()});
 $("saveDeckBtn").addEventListener("click",saveCurrentDeck);
 $("statsBtn").addEventListener("click",openStats);
 $("statsClose").addEventListener("click",closeStats);
+// Sem stopPropagation de propósito: o handler em document fecha o menu de decks
+// salvos, que fica aberto se o clique não chegar até ele.
+$("addDeckBtn").addEventListener("click",()=>$("deckFileInput").click());
+$("deckFileInput").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];
+  e.target.value=""; // permite reimportar o mesmo arquivo logo em seguida
+  onDeckFileChosen(f);
+});
 $("savedDecksBtn").addEventListener("click",e=>{
   e.stopPropagation();
   openSavedDecksMenu($("savedDecksMenu").classList.contains("hidden"));
@@ -2353,6 +2549,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("keydown",e=>{
   if(e.key!=="Escape")return;
+  if(!$("deckNameModal").classList.contains("hidden")){closeDeckNameModal();return}
   if(!$("lcDefeat").classList.contains("hidden")){$("lcDefeat").classList.add("hidden");return}
   if(!$("statsBox").classList.contains("hidden")){closeStats();return}
   if($("lcDrawer").classList.contains("on")){closeLcDrawer();return}
@@ -2675,6 +2872,17 @@ lcGridElDOM.addEventListener("focusout",e=>{
   if(inp&&inp.classList&&inp.classList.contains("lc-numin")&&!inp.classList.contains("hidden"))closeLcEditor(inp,false);
 });
 document.querySelectorAll("#ptTabs .seg-btn").forEach(b=>b.addEventListener("click",()=>switchLangTab(b.dataset.lang)));
+// "Baixar app" só faz sentido no site. Dentro do app Android este mesmo HTML é
+// servido pelo WebView, e o MainActivity marca o User-Agent com "DeckTradutor/".
+// Escondemos o link e sem a classe has-dl a barra de baixo volta a ter 2 linhas.
+try{
+  if(/DeckTradutor\//.test(navigator.userAgent)){
+    const dl=$("dlApp");
+    if(dl)dl.classList.add("hidden");
+  }else{
+    document.body.classList.add("has-dl");
+  }
+}catch(_){document.body.classList.add("has-dl")}
 switchLangTab("en");
 renderSavedDecks();
 openLcSetup();

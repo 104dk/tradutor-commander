@@ -19,11 +19,12 @@ Cole a lista, o app busca cada carta no Scryfall, monta a versão oficial em PT 
    - [Por que `.gitignore` está aqui](#por-que-gitignore-está-aqui)
    - [Por que `vercel.json` está aqui](#por-que-verceljson-está-aqui)
    - [Por que `og-image.jpg` está aqui](#por-que-og-imagejpg-está-aqui)
-5. [Cache no navegador](#cache-no-navegador)
-6. [APIs externas](#apis-externas)
-7. [Desenvolvimento local](#desenvolvimento-local)
-8. [Deploy](#deploy)
-9. [Limitações conhecidas](#limitações-conhecidas)
+5. [Cache no navegador](#5-cache-por-navegador)
+6. [App Android](#app-android)
+7. [APIs externas](#apis-externas)
+8. [Desenvolvimento local](#desenvolvimento-local)
+9. [Deploy](#deploy)
+10. [Limitações conhecidas](#limitações-conhecidas)
 
 ---
 
@@ -35,10 +36,11 @@ Cole a lista, o app busca cada carta no Scryfall, monta a versão oficial em PT 
   - **Impressão oficial** — quando a carta tem impressão em português no Scryfall, usa nome, tipo e arte oficiais;
   - **Tradução automática** — quando não tem impressão PT, traduz o texto mantendo as palavras-chave oficiais de Magic.
 - **Duas abas (Inglês / Português)** com *swipe* entre cartas no mobile.
-- **PDF**: 9 cartas por página A4, com arte, tipos, regras e texto PT. Preview em modal antes de baixar.
+- **PDF**: 9 cartas por página A4, com arte, tipos, regras e texto PT. Preview em modal antes de baixar. O botão **Salvar** pede o **nome do deck** antes de gerar: esse nome vira o subtítulo do PDF e o nome do arquivo em `Downloads/decks`.
 - **Contador de vida**: 20 / 40 / personalizado, multiplayer, press-and-hold para somar rápido, renomear jogadores, importar ícone de mana do deck salvo, e botão de defesa (duas vidas).
-- **Estatísticas do deck**: cores, tipos e curva de mana.
-- **Decks salvos**: guarda listas no navegador para carregar rápido.
+- **Estatísticas do deck**: cores, tipos e curva de mana. O chip **N nomes** é clicável e abre a lista de cartas do deck com nome original, tradução disponível e a origem dela (oficial do Scryfall ou automática).
+- **Decks salvos**: guarda listas no navegador para carregar rápido, e o botão **+ deck** importa um arquivo `.txt`/`.csv`/`.md` do dispositivo, usando o nome do arquivo como nome do deck.
+- **App Android**: o mesmo `index.html` roda dentro de um app WebView empacotado, disponível para download aqui em cima. O botão *Baixar app* some dentro do próprio app. Detalhes em [App Android](#app-android).
 - **Sem backend, sem conta, sem analytics.** Tudo roda no cliente.
 
 ---
@@ -155,27 +157,28 @@ Modal inicial, vida inicial 20/40/personalizado, adição/subtração por toque 
 
 ### O arquivo `index.html` por dentro
 
-O app inteiro vive em um único arquivo de ~2.700 linhas, dividido em seções marcadas no código:
+O app inteiro vive em um único arquivo de ~2.900 linhas, dividido em seções marcadas no código:
 
-| Linha (aprox.) | Seção | O que faz |
+| Linha | Seção | O que faz |
 | --- | --- | --- |
-| 278 | `/* Calculadora de Vida */` | CSS do contador e do drawer mobile |
-| 546 | `// ===== Parse da lista =====` | normalização de linhas e limpeza de sufixo de exportador |
-| 585 | `// ===== Rede (Scryfall + tradução) =====` | timeout, retry, `Retry-After`, parsing de erros |
-| 866 | `// ===== Tradução automática =====` | glossário, proteção de mana, type line, cascata de provedores |
-| 1279 | `// ===== Render helpers =====` | simbologia, meta da carta, faces, escaping |
-| 1432 | `// ===== Monta o painel PT =====` | impressão oficial **ou** tradução automática |
-| 1465 | `// ===== Lista =====` | render da lista, filtro, seleção |
-| 1541 | `// ===== Seleção (EN + PT) =====` | cards das duas abas |
-| 1617 | `// ===== Verificar Tradução =====` | revalidação forçada |
-| 1677 | `// ===== Traduzir cartas pendentes =====` | lote em paralelo, cache-first |
-| 1840 | `// ===== Estatísticas do deck =====` | cores, tipos, curva |
-| 1985 | `// ===== Salvar Deck (PDF) =====` | paginação, html2canvas, jsPDF |
-| 2133 | `// ===== Prévia do PDF =====` | modal de preview |
-| 2162 | `// ===== Decks salvos =====` | persistência e menu rápido |
-| 2226 | `// ===== Mobile: abas EN/PT + swipe =====` | navegação por toque |
-| 2253 | `// ===== Events =====` | listeners |
-| 2371 | `// ===== Calculadora de Vida =====` | lógica do contador |
+| 314 | `/* Calculadora de Vida */` | CSS do contador e do drawer mobile |
+| 608 | `// ===== Parse da lista =====` | normalização de linhas e limpeza de sufixo de exportador |
+| 647 | `// ===== Rede (Scryfall + tradução) =====` | timeout, retry, `Retry-After`, parsing de erros |
+| 928 | `// ===== Tradução automática =====` | glossário, proteção de mana, type line, cascata de provedores |
+| 1341 | `// ===== Render helpers =====` | simbologia, meta da carta, faces, escaping |
+| 1494 | `// ===== Monta o painel PT =====` | impressão oficial **ou** tradução automática |
+| 1527 | `// ===== Lista =====` | render da lista, filtro, seleção |
+| 1603 | `// ===== Seleção (EN + PT) =====` | cards das duas abas |
+| 1679 | `// ===== Verificar Tradução =====` | revalidação forçada |
+| 1739 | `// ===== Traduzir cartas pendentes =====` | lote em paralelo, cache-first |
+| 1902 | `// ===== Estatísticas do deck =====` | cores, tipos, curva e a lista de cartas |
+| 2091 | `// ===== Salvar Deck (PDF) =====` | modal do nome, paginação, html2canvas, jsPDF |
+| 2268 | `// ===== Prévia do PDF =====` | modal de preview |
+| 2300 | `// ===== Decks salvos =====` | persistência e menu rápido |
+| 2359 | `// ===== Importar deck de um arquivo =====` | leitura do arquivo, nome do deck, carga automática |
+| 2405 | `// ===== Mobile: abas EN/PT + swipe =====` | navegação por toque |
+| 2432 | `// ===== Events =====` | listeners |
+| 2568 | `// ===== Calculadora de Vida =====` | lógica do contador |
 
 ### Decisões de arquitetura
 
@@ -193,13 +196,14 @@ O app inteiro vive em um único arquivo de ~2.700 linhas, dividido em seções m
 
 | Arquivo | Tamanho | Papel |
 | --- | --- | --- |
-| `index.html` | 235 KB | **o app inteiro** — HTML, CSS e JS inline |
+| `index.html` | 241 KB | **o app inteiro** — HTML, CSS e JS inline |
+| `DeckTradutor.apk` | 676 KB | app Android assinado, servido direto pelo link *Baixar app* |
 | `og-image.jpg` | 62 KB | thumbnail 1200×630 do preview de link |
-| `vercel.json` | 395 B | headers de segurança do site |
+| `vercel.json` | 576 B | headers de segurança do site e do APK |
 | `README.md` | — | esta documentação |
 | `robots.txt` | 23 B | política de rastreamento |
 | `.gitignore` | 226 B | não versiona artefatos locais |
-| `.gitattributes` | 92 B | normaliza finais de linha |
+| `.gitattributes` | 202 B | normaliza finais de linha e marca binários |
 
 ### Por que `robots.txt` está aqui
 
@@ -222,7 +226,7 @@ Ele é referenciado por **nada** no `index.html` — é lido direto por buscador
 
 ### Por que `.gitattributes` está aqui
 
-O arquivo mais curto do repo (92 bytes) resolve um problema específico de quem desenvolve no Windows:
+O arquivo mais curto do repo resolve dois problemas de quem desenvolve no Windows:
 
 ```
 * text=auto eol=lf
@@ -230,14 +234,20 @@ O arquivo mais curto do repo (92 bytes) resolve um problema específico de quem 
 *.json text eol=lf
 *.txt text eol=lf
 *.md text eol=lf
+
+*.apk     binary
+*.jks     binary
+*.keystore binary
 ```
 
-Sem ele, o Git no Windows converte as quebras de linha para **CRLF** ao tocar o arquivo, e produz o aviso `LF will be replaced by CRLF` em cada `git add`. Isso importa aqui por dois motivos:
+A primeira parte é sobre **texto**: sem ela, o Git no Windows converte as quebras de linha para **CRLF** ao tocar o arquivo, e produz o aviso `LF will be replaced by CRLF` em cada `git add`. Isso importa por dois motivos:
 
 1. **Ruído constante.** O `index.html` é um arquivo gigante de uma linha por elemento; qualquer diff fica mais difícil de ler quando o fim de linha muda junto;
 2. **Previsibilidade entre máquinas.** Quem edita no Linux/macOS e quem edita no Windows passam a ver o mesmo conteúdo, com LF no repositório, o que evita conflitos de linha inteira em commits seguintes.
 
 Efeito colateral útil: como a regra é `eol=lf`, o HTML é gravado com LF no disco também — que é o formato esperado pelos navegadores e pelo GitHub.
+
+A segunda parte é o **exato oposto**, e é obrigatória: `*.apk binary` desliga a normalização para o APK. Um APK é um ZIP com assinatura — se o Git normalizar alguma quebra de linha dentro dele, o arquivo sobe com checksum diferente do que a máquina gerou, a assinatura deixa de validar e o Android recusa a instalação. As regras `*.jks` e `*.keystore` existem pelo mesmo motivo, caso a chave de assinatura um dia seja versionada (a deste projeto **não** é: ela fica no `.gitignore` do projeto Android).
 
 ### Por que `.gitignore` está aqui
 
@@ -253,7 +263,7 @@ O item crítico é **`.vercel/`**: ele já existe nesta pasta (criado pelo `verc
 
 ### Por que `vercel.json` está aqui
 
-É o único lugar do projeto que configura o **servidor** — e ele não é decoração. Publica três headers em todas as respostas:
+É o único lugar do projeto que configura o **servidor** — e ele não é decoração. Publica três headers de segurança em todas as respostas:
 
 ```json
 { "key": "X-Content-Type-Options", "value": "nosniff" }
@@ -269,7 +279,17 @@ O item crítico é **`.vercel/`**: ele já existe nesta pasta (criado pelo `verc
 
 Isso foi verificado: outros projetos Vercel sem `vercel.json` **não** devolvem nenhum desses headers. Ou seja, se o arquivo sair do repo, os três headers somem junto com ele.
 
-O mesmo arquivo também define `"cleanUrls": true` e `"trailingSlash": false`, para `/index.html` responder como `/`.
+O mesmo arquivo define `"cleanUrls": true` e `"trailingSlash": false`, para `/index.html` responder como `/`.
+
+E tem uma **quarta regra, só para o APK** (`/DeckTradutor.apk`), que precisa de headers próprios porque o arquivo é binário e baixado, não exibido:
+
+```json
+{ "key": "Content-Type",        "value": "application/vnd.android.package-archive" }
+{ "key": "Content-Disposition", "value": "attachment; filename=\"DeckTradutor.apk\"" }
+{ "key": "Cache-Control",       "value": "public, max-age=3600, must-revalidate" }
+```
+
+O `Content-Type` explícito evita depender da detecção por extensão, e o `Content-Disposition: attachment` garante o download em vez de qualquer tentativa de exibição inline. O `Cache-Control` é propositalmente curto e com `must-revalidate`: o link já carrega `?v=<versão>` para furar o cache, então não há ganho em guardar o APK por um ano — e um binário republicado com a mesma versão ainda chega rápido.
 
 ### Por que `og-image.jpg` está aqui
 
@@ -285,6 +305,35 @@ twitter:card      → summary_large_image
 **Por que precisa ser um arquivo real e não base64 inline:** os scrapers de preview são servidores externos que abrem a URL e baixam a imagem. Um `data:` URI dentro do HTML não é acessível para eles. Já o favicon e o logo do cabeçalho são base64 porque só precisam ser lidos pelo navegador, que já tem o HTML em mãos.
 
 A imagem (1200×630, JPEG, 62 KB) é gerada a partir do `LogoMTG.png` com a mesma identidade visual do site: fundo escuro em gradiente, barra de cores MTG no topo, logo à esquerda e os textos *Deck Tradutor*, *Commander | EN → PT-BR* e a descrição das funcionalidades.
+
+---
+
+## App Android
+
+O `DeckTradutor.apk` deste repositório é o **mesmo `index.html` do site**, empacotado num app Android com WebView. Não existe uma segunda cópia do frontend: o Gradle copia o `index.html` para `app/src/main/assets/www/` antes de cada build e falha se a pasta `tradutor-commander-web` não estiver no lugar.
+
+O projeto Android fica **fora** deste repositório, na pasta `Magic/tradutor-apk` do monorepo.
+
+| Item | Valor |
+| --- | --- |
+| Package | `br.com.tradutordeck.app` |
+| Versão | 1.1.0 (`versionCode` 2) |
+| Requisitos | Android 6.0 (API 23) ou superior |
+| Permissões | apenas `INTERNET` |
+| Assinatura | v1 + v2 + v3 |
+
+**Por que o app não carrega `file://`:** a partir do Android 11 (`targetSdk >= 30`) o WebView bloqueia `fetch`/XHR de páginas `file://` para origem externa, e o app depende de `fetch` para o Scryfall e para os provedores de tradução. O `WebViewAssetLoader` serve os assets em `https://appassets.androidplatform.net`, que é uma origem HTTPS de verdade — mesmo comportamento do site, `localStorage` funcionando e o canvas do PDF sem *tainting*.
+
+**O que o Java acrescenta** (o resto é o HTML puro):
+
+- **Importar deck** — o WebView ignora `<input type="file">` sem `onShowFileChooser`, então o app implementa o callback e abre o seletor do sistema já em *Downloads*;
+- **Salvar o PDF** — o jsPDF gera um `blob:`, que o `DownloadManager` não entende. O app lê o blob dentro da página, recebe em base64 pelo bridge `DeckNative` e grava em **`Downloads/decks`** via `MediaStore` (Android 10+) ou na pasta externa do app (Android 9 e anteriores);
+- **Nome do arquivo** — o nome escolhido no modal do site chega em `window.__deckPdfName` e é sanitizado com a mesma regra do `pdfFileName()` do HTML, então o arquivo sai igual nos dois lugares;
+- **Botão *Baixar app*** — escondido dentro do app pelo User-Agent `DeckTradutor/`, que o próprio HTML detecta;
+- **Pastas do app** — `decks` e `deckpdf` são criadas em `getExternalFilesDir(null)` na primeira execução: somem ao desinstalar e não pedem permissão;
+- **Botão voltar** — fecha o modal do nome, recolhe a lista de nomes, e só então fecha a pré-visualização, as estatísticas e o app, nessa ordem.
+
+**Publicar uma versão nova:** subir o `versionName` em `app/build.gradle`, atualizar o `?v=` no `href` do botão *Baixar app* (o build falha se os dois divergirem), rodar `gradlew assembleRelease` e substituir o `DeckTradutor.apk` deste repositório.
 
 ---
 

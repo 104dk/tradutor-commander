@@ -3,3 +3,9 @@
 *.json text eol=lf
 *.txt text eol=lf
 *.md text eol=lf
+
+# O APK é binário. Sem isto o Git pode tentar normalizar fim de linha e o arquivo
+# sobe com checksum diferente da maquina que gerou, o que quebra a verificacao.
+*.apk binary
+*.jks binary
+*.keystore binary
