@@ -18,9 +18,12 @@ Live: https://tradutor-commander.vercel.app
 
 ```
 index.html      app completo (HTML + CSS + JS inline)
+og-image.jpg    thumbnail 1200x630 usada no preview de link (WhatsApp/Discord/X)
 robots.txt
 vercel.json     headers de segurança da Vercel
 ```
+
+O logo (`LogoMTG.png`) vai embutido no próprio HTML em base64 (favicon 64x64 + logo do cabeçalho), então o arquivo continua **autocontido** — funciona offline e dentro do app Android sem depender de imagem externa.
 
 `index.html` é **autocontido**: só depende de CDN público (Google Fonts, html2canvas, jsPDF) e das APIs do Scryfall + tradutores. Não há etapa de build, bundler ou dependências npm.
 
