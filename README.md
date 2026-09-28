@@ -317,7 +317,7 @@ O projeto Android fica **fora** deste repositório, na pasta `Magic/tradutor-apk
 | Item | Valor |
 | --- | --- |
 | Package | `br.com.tradutordeck.app` |
-| Versão | 1.1.0 (`versionCode` 2) |
+| Versão | 1.1.1 (`versionCode` 3) |
 | Requisitos | Android 6.0 (API 23) ou superior |
 | Permissões | apenas `INTERNET` |
 | Assinatura | v1 + v2 + v3 |
