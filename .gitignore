@@ -1,0 +1,21 @@
+# Dependências / build
+node_modules/
+.vercel/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Sistema operacional / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Ambiente
+.env
+.env.local
+.env*.local

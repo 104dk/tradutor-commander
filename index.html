@@ -1,0 +1,2667 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0c09" />
+  <title>Deck Tradutor — Commander (Scryfall EN → PT-BR)</title>
+  <meta name="description" content="Monte listas de Magic: The Gathering Commander traduzidas para PT-BR. Busca cartas no Scryfall, traduz nome, tipos, regras e texto de flavour, e gera o PDF do deck pronto para jogar." />
+  <meta name="author" content="Deck Tradutor Commander" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Deck Tradutor Commander" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:title" content="Deck Tradutor — Commander PT-BR" />
+  <meta property="og:description" content="Listas de Commander traduzidas para português: Scryfall + tradução automática + PDF pronto para jogar." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Deck Tradutor — Commander PT-BR" />
+  <meta name="twitter:description" content="Listas de Commander traduzidas para português: Scryfall + tradução automática + PDF pronto para jogar." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%230e0c09'/%3E%3Crect%20x='6.5'%20y='4.5'%20width='19'%20height='23'%20rx='3.5'%20fill='none'%20stroke='%23dcb14a'%20stroke-width='2'/%3E%3Cpath%20d='M10.5%2012.5h11M10.5%2017h7'%20stroke='%23dcb14a'%20stroke-width='2'%20stroke-linecap='round'/%3E%3Cpath%20d='M11%2021.5h10'%20stroke='%23f2cc6b'%20stroke-width='2'%20stroke-linecap='round'/%3E%3C/svg%3E" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,420;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+    :root{
+      --ink:#0c0a08;--ink-2:#17120c;--ink-3:#221a11;--ink-4:#2d2216;
+      --line:#3d2e1a;--line-soft:#2a2013;
+      --text:#f3ecd9;--muted:#a9977c;
+      --parchment:#f3ead4;--parchment-line:#c9b688;--brown:#2c2013;
+      --gold:#dcb14a;--gold-bright:#f2cc6b;--gold-dim:#8a6d2c;
+      --azure:#3f9ae0;--verde:#34b963;--ember:#e0642f;--danger:#d5533f;
+      --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)
+    }
+    *{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{margin:0;min-height:100vh;background:
+        radial-gradient(ellipse 1000px 560px at 50% -14%,rgba(220,177,74,.12),transparent 60%),
+        radial-gradient(ellipse 720px 440px at 108% 2%,rgba(63,154,224,.10),transparent 58%),
+        radial-gradient(ellipse 720px 440px at -8% 100%,rgba(52,185,99,.07),transparent 55%),
+        var(--ink);
+      color:var(--text);font-family:'Inter',system-ui,Arial,sans-serif}
+    h1,h2,.c-name,.c-rules,.c-flavor,.serif{font-family:'Fraunces',Georgia,serif}
+    button,input,select,textarea{font-family:inherit;font-size:16px;border:1px solid var(--line);background:var(--ink-2);color:var(--text);padding:11px 14px;border-radius:9px}
+    button{cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:border-color .15s,background .15s,transform .08s,box-shadow .15s}
+    button:active{transform:scale(.97)}
+    button:disabled{opacity:.5;cursor:default}
+    button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px}
+    input:focus,textarea:focus,select:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(220,177,74,.12)}
+    button svg{flex-shrink:0}
+    .primary{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border:1px solid var(--gold-bright);color:#211505;font-weight:700}
+    .primary:hover{box-shadow:0 0 0 3px rgba(242,204,107,.18)}
+    .ghost{background:transparent;color:var(--muted)}
+    .ghost:hover{color:var(--text);border-color:var(--gold-dim);background:var(--ink-3)}
+    .hidden{display:none!important}
+    .wrap{max-width:1400px;margin:0 auto;padding:0 14px}
+    header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,rgba(16,13,9,.97),rgba(12,10,8,.93));backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:calc(15px + var(--safe-t)) 0 13px;box-shadow:0 10px 30px -18px rgba(0,0,0,.9)}
+    header::before{content:"";display:block;height:3px;margin:calc(-15px - var(--safe-t)) 0 15px;background:linear-gradient(90deg,#e9dfbf,#2f8fd6,#6b5f86,#e6432c,#2fa855);opacity:.85}
+    .h-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    h1{margin:0;font-size:22px;font-weight:600;line-height:1.15;letter-spacing:.2px;background:linear-gradient(90deg,var(--text),var(--gold-bright));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+    .subtitle{color:var(--muted);font-size:12.5px;margin-top:4px;font-family:'Inter',sans-serif}
+    .icon-btn{flex-shrink:0;padding:8px 13px;font-size:16px;line-height:1}
+    @media (min-width:640px){h1{font-size:27px}}
+    main.wrap{padding:20px 14px calc(28px + var(--safe-b))}
+    .layout{display:grid;grid-template-columns:1fr;gap:16px;margin-top:4px;align-items:start}
+    @media (min-width:1100px){
+      .layout{grid-template-columns:minmax(290px,340px) 1fr 1fr}
+      .list-panel{position:sticky;top:112px;max-height:calc(100vh - 128px);display:flex;flex-direction:column}
+    }
+    .panel{background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 14px 34px -26px rgba(0,0,0,.95),inset 0 1px 0 rgba(242,204,107,.04)}
+    .view-panel{border-color:var(--line-soft);position:relative}
+    .view-panel::before{content:"";position:absolute;top:0;left:16px;right:16px;height:2px;border-radius:999px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);opacity:.5;pointer-events:none}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:13px;padding-bottom:12px;border-bottom:1px solid var(--line-soft)}
+    .panel-head h2{margin:0;font-size:16px;font-weight:600;line-height:1.25;display:flex;align-items:center;gap:8px}
+    .panel-head h2::before{content:"";width:4px;height:15px;border-radius:999px;background:linear-gradient(180deg,var(--gold-bright),var(--gold-dim));flex-shrink:0}
+    .hint{color:var(--muted);font-size:11.5px}
+    textarea{width:100%;min-height:120px;resize:vertical;font-family:'Inter',Menlo,monospace;font-size:13.5px;line-height:1.6;border-radius:10px}
+    .row{display:flex;gap:10px;margin-top:12px}
+    .row button{flex:1;padding:10px 8px;font-size:14px}
+    .row button svg{width:15px;height:15px}
+    .row button.primary{flex:1.15}
+    .status{margin-top:12px;padding:11px 13px;color:var(--muted);font-size:12.5px;line-height:1.55;border-radius:9px;background:var(--ink-3);border:1px solid var(--line-soft);border-left:3px solid var(--line)}
+    .status:empty{padding:0;background:transparent;border:0}
+    .status.warn{color:var(--gold-bright);border-left-color:var(--gold)}
+    .status.err{color:var(--danger);border-left-color:var(--danger)}
+    .status.ok{color:var(--verde);border-left-color:var(--verde)}
+    .lsearch{width:100%;margin-top:14px;font-size:14.5px;border-radius:10px;background:var(--ink);border-color:var(--line-soft)}
+    /* Painel da lista de cartas — compacto para aproveitar a altura da tela */
+    .list-panel{padding:14px 16px}
+    .list-panel .panel-head{margin-bottom:10px;padding-bottom:10px}
+    .list-panel textarea{min-height:92px}
+    .list-panel .row{margin-top:10px}
+    .list-panel .status{margin-top:9px;padding:9px 11px}
+    .list-panel .lsearch{margin-top:11px;padding:9px 12px;font-size:13.5px}
+    .list-panel .list-scroll{margin-top:8px}
+    .dd-wrap{position:relative;flex-shrink:0}
+    .dd-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:4px;background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));color:#211505;font-size:10.5px;font-weight:700;border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+    .dd-badge.hidden{display:none}
+    .dd-menu{position:absolute;top:calc(100% + 8px);right:0;width:min(300px,86vw);max-height:340px;overflow-y:auto;background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border:1px solid var(--line);border-radius:11px;box-shadow:0 22px 50px rgba(0,0,0,.65),0 0 0 1px rgba(220,177,74,.08);z-index:60;padding:6px}
+    .dd-menu.hidden{display:none}
+    .dd-empty{padding:18px 14px;color:var(--muted);font-size:12.5px;line-height:1.6;text-align:center}
+    .saved-deck-row{display:flex;align-items:center;gap:8px;padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--line-soft);border-radius:7px;transition:background .12s}
+    .saved-deck-row:last-child{border-bottom:0}
+    .saved-deck-row:hover,.saved-deck-row:focus-visible{background:var(--ink-3)}
+    .sd-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:500}
+    .sd-count{flex-shrink:0;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+    .sd-del{flex-shrink:0;background:transparent;border:0;color:var(--muted);font-size:16px;line-height:1;padding:2px 6px;border-radius:5px}
+    .sd-del:hover{color:var(--danger);background:rgba(213,83,63,.12)}
+    .list-scroll{margin-top:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:40vh}
+    @media (min-width:1100px){.list-scroll{flex:1;min-height:0;max-height:none;margin-top:10px}}
+    .lrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 11px;margin-bottom:3px;border:1px solid transparent;border-left:3px solid transparent;background:transparent;border-radius:8px;cursor:pointer;color:var(--text);font-weight:500;font-size:14px;transition:background .12s,border-color .12s}
+    .lrow:hover{background:var(--ink-3)}
+    .lrow.active{background:var(--ink-3);border-left-color:var(--gold-bright);border-color:var(--line-soft)}
+    .lrow.hidden{display:none}
+    .lrow .qty{flex-shrink:0;color:var(--gold);font-weight:700;font-size:12px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums;background:var(--ink-4);border:1px solid var(--line-soft);border-radius:6px;padding:2px 4px}
+    .lrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .lrow.active .nm{color:var(--gold-bright)}
+    .st{flex-shrink:0;font-size:11.5px;font-weight:700;min-width:20px;text-align:center}
+    .st-none{color:var(--muted)}.st-ok{color:var(--verde)}.st-err{color:var(--danger)}.st-pt{color:var(--gold-bright)}.st-auto{color:var(--ember)}
+    /* Sugestão de nome quando a carta não existe no Scryfall */
+    .lrow-sug{display:block;margin:-2px 0 8px 11px;padding:7px 10px;border:1px dashed var(--line);border-left:2px solid var(--gold-bright);border-radius:5px;background:var(--ink-3);font-size:12px;line-height:1.5;color:var(--muted)}
+    .lrow-sug .sug-hint{display:block;font-family:'Inter',sans-serif;font-weight:600;color:var(--gold-bright);margin-bottom:5px;font-size:11px;letter-spacing:.2px;text-transform:uppercase}
+    .lrow-sug .sug-btn{display:flex;align-items:center;gap:6px;width:100%;text-align:left;background:transparent;border:1px solid var(--line);color:var(--text);border-radius:5px;padding:5px 8px;margin-top:4px;font-size:12.5px;cursor:pointer;font-weight:600}
+    .lrow-sug .sug-btn:hover{border-color:var(--gold-bright);color:var(--gold-bright)}
+    .lrow-sug .sug-set{margin-left:auto;color:var(--muted);font-weight:500;font-family:'Inter',sans-serif;font-size:10.5px;font-style:italic;flex-shrink:0}
+    /* Painéis de exibição */
+    .view{min-height:260px}
+    .placeholder{padding:46px 16px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.7}
+    .loading{padding:36px 10px;text-align:center;color:var(--muted);font-size:14px}
+    .loading.err{color:var(--danger)}
+    .cview{display:flex;flex-direction:column;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .c-strip{height:5px;border-radius:5px;margin-bottom:12px;box-shadow:0 0 12px -1px rgba(220,177,74,.5)}
+    .badge{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1px;color:var(--muted);margin-bottom:12px}
+    .badge::before{content:"";width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px 0 currentColor}
+    .b-en{color:var(--azure)}.b-en::before{background:var(--azure)}
+    .b-pt{color:var(--verde)}.b-pt::before{background:var(--verde)}
+    .b-auto{color:var(--ember)}.b-auto::before{background:var(--ember)}
+    .c-art{position:relative;border-radius:12px;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 0 1px var(--gold-dim);margin-bottom:14px;background:var(--ink-3);border:2px solid var(--gold)}
+    .c-art img{width:100%;display:block;max-height:320px;object-fit:cover;object-position:center 18%}
+    .c-noart{padding:34px;text-align:center;color:var(--muted)}
+    .c-imgfallback{display:flex;align-items:center;justify-content:center;min-height:150px;font-weight:600;letter-spacing:.2px;color:var(--muted);background:var(--ink-3)}
+    .c-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .c-name{font-size:20px;font-weight:600;line-height:1.25;min-width:0}
+    .c-mana{display:flex;gap:2px;flex-shrink:0;max-width:55%;justify-content:flex-end;flex-wrap:wrap;margin-top:3px}
+    .ms{width:18px;height:18px;vertical-align:-3px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+    .c-type{font-size:12.5px;font-weight:600;color:var(--gold-bright);margin-top:5px;font-family:'Inter',sans-serif}
+    .c-rules{font-size:14.5px;font-weight:420;line-height:1.6;color:var(--text);margin-top:10px}
+    .c-rules p{margin:0 0 8px}.c-rules p:last-child{margin-bottom:0}
+    .c-rules .ms{width:14px;height:14px;vertical-align:-2px;margin:0 1px}
+    .c-flavor{font-style:italic;font-weight:420;color:var(--muted);font-size:13px;margin-top:6px}
+    .c-note{margin-top:11px;padding:10px 12px;border:1px solid var(--line-soft);border-left:2px solid var(--ember);background:var(--ink-3);color:var(--muted);font-size:12px;line-height:1.55;border-radius:5px;font-family:'Inter',sans-serif}
+    .c-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft)}
+    .c-meta{font-size:10.5px;color:var(--muted);line-height:1.45;min-width:0;font-family:'Inter',sans-serif}
+    .m-pt{flex-shrink:0;background:var(--parchment);border:1px solid var(--parchment-line);border-radius:6px 6px 2px 2px;padding:3px 10px;font-weight:700;font-size:13.5px;color:var(--brown);font-family:'Inter',sans-serif}
+    .r-col{font-weight:700;letter-spacing:.2px;font-family:'Inter',sans-serif}
+    .r-common{color:#cbc2ac}.r-uncommon{color:#a9c3d6}.r-rare{color:var(--gold-bright)}.r-mythic{color:#f0642a}.r-special{color:#b98fd9}.r-bonus{color:#f0642a}
+    /* Botões de ação no header — agrupados por função */
+    .h-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .hgrp{display:inline-flex;gap:8px;align-items:center;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--ink-2);box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+    .hgrp .btn-action,.hgrp .icon-btn{border-radius:8px;border-width:0;box-shadow:none}
+    .btn-action{background:transparent;border:1px solid var(--line);color:var(--text);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+    .btn-action svg{width:15px;height:15px;opacity:.85}
+    .btn-action.primary{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));color:#211505;font-weight:700;border:1px solid var(--gold-bright);box-shadow:0 4px 14px -6px rgba(220,177,74,.6)}
+    .btn-action.primary:hover{box-shadow:0 0 0 3px rgba(242,204,107,.2),0 4px 16px -6px rgba(220,177,74,.8)}
+    .btn-action:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-1px)}
+    .btn-action:disabled{opacity:.45;cursor:default;transform:none}
+    .pt-tabs{display:none;gap:8px;align-items:stretch}
+    .seg-btn{flex:1;padding:11px 10px;font-size:14px;border-radius:9px;background:var(--ink-3);color:var(--muted);border:1px solid var(--line);font-weight:600;white-space:nowrap;transition:background .12s,color .12s,border-color .12s}
+    .seg-btn:hover{border-color:var(--gold-dim)}
+    .seg-btn.active{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505;box-shadow:0 3px 12px -4px rgba(220,177,74,.6)}
+    /* Celular: cabeçalho compacto, barra de ações fixa em grade, alvos de toque grandes */
+    @media (max-width:700px){
+      header{padding:calc(8px + var(--safe-t)) 0 8px}
+      header::before{margin:calc(-8px - var(--safe-t)) 0 8px}
+      h1{font-size:18px}
+      .subtitle{display:none}
+      .h-top{flex-direction:column;align-items:stretch;gap:8px}
+      .layout{gap:12px;margin-top:2px}
+      /* Barra de ações fixa: grade 2×3 sem rolagem horizontal */
+      .h-actions{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 10px calc(8px + var(--safe-b));background:rgba(14,12,9,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);box-shadow:0 -12px 30px -18px rgba(0,0,0,.9)}
+      .h-actions::-webkit-scrollbar{display:none}
+      .hgrp{display:contents}
+      .h-actions .btn-action,.h-actions .icon-btn{width:100%;min-height:44px;padding:8px 4px;font-size:12px;gap:4px;justify-content:center;white-space:nowrap;border:1px solid var(--line);border-radius:9px;background:var(--ink-2);box-shadow:none;flex-shrink:0}
+      .h-actions .btn-action.primary{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505;font-weight:700}
+      .h-actions .icon-btn{margin-left:0}
+      #verifyBtn{grid-area:1/1}#translateAllBtn{grid-area:1/2}#savePdfBtn{grid-area:1/3}
+      #statsBtn{grid-area:2/1}#calcLifeBtn{grid-area:2/2}#reload{grid-area:2/3;color:var(--muted)}
+      .h-actions .btn-action svg,.h-actions .icon-btn svg{width:16px;height:16px}
+      .btn-action[data-short] .lbl{display:none}
+      .btn-action[data-short]::after{content:attr(data-short)}
+      .panel{padding:12px}
+      .list-panel{padding:12px}
+      .row{gap:8px}
+      .pt-tabs{display:flex}
+      .seg-btn{min-height:46px}
+      .lrow{padding:12px 11px;min-height:46px}
+      .sd-del{padding:0 12px;min-width:44px;min-height:44px;font-size:20px}
+      .saved-deck-row{padding:12px;min-height:50px}
+      .list-scroll{max-height:46vh}
+      .c-art img{max-height:210px}
+      .panel-head{margin-bottom:10px;padding-bottom:10px}
+      .row button{padding:10px 6px;font-size:13.5px;min-height:44px}
+      .lsearch{min-height:44px}
+      #savedDecksBtn{min-height:44px}
+      .h-actions .btn-action:hover,.h-actions .icon-btn:hover{transform:none}
+      main.wrap{padding:12px 10px calc(118px + var(--safe-b))}
+      body{overflow-x:hidden}
+    }
+    .btn-action:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-1px)}
+    .btn-action:disabled{opacity:.45;cursor:default;transform:none}
+    /* Exportação de PDF — container oculto (renderização página a página) */
+    /* Fora da tela (não em z-index negativo): 794px de largura causava rolagem
+       horizontal e layout quebrado em telas de celular. */
+#pdfExport{position:fixed;top:0;left:-20000px;width:794px;pointer-events:none;background:#fff;font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#1a1a2e}
+    #pdfExport .pdf-page{width:794px;height:1123px;padding:20px 26px;box-sizing:border-box;overflow:hidden;background:#fff}
+    #pdfExport .pdf-title{font-size:18px;font-weight:800;text-align:center;margin-bottom:10px;color:#1a1a2e;border-bottom:2px solid #b8892f;padding-bottom:7px}
+    #pdfExport .pdf-grid{display:grid;grid-template-columns:repeat(3,240px);gap:10px;justify-content:center}
+    #pdfExport .pdf-card{width:240px;height:336px;border:2px solid #1a1a2e;border-radius:13px;background:#111;position:relative;display:block;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+    #pdfExport .pdf-card-art{position:absolute;top:0;left:0;width:100%;height:185px;background:#222}
+    #pdfExport .pdf-card-art img{width:100%;height:185px;object-fit:cover;object-position:center 18%;display:block}
+    #pdfExport .pdf-card-art .c-imgfallback{width:100%;height:185px;display:flex;align-items:center;justify-content:center;background:#e5e7eb;color:#9ca3af;font-size:11px;text-align:center;padding:8px;box-sizing:border-box}
+    #pdfExport .pdf-card-ptbox{position:absolute;top:168px;left:5px;right:5px;bottom:5px;background:#fdf6e3;border:1.5px solid #1a1a2e;border-radius:8px;padding:6px 8px 7px;display:flex;flex-direction:column;min-height:0;z-index:2}
+    #pdfExport .pdf-card-name{font-family:Georgia,serif;font-size:12.5px;font-style:italic;font-weight:700;color:#1a1a2e;line-height:1.15;margin-bottom:2px;max-height:2.4em;overflow:hidden}
+    #pdfExport .pdf-card-type{font-size:8.5px;font-weight:700;color:#8a6d2c;margin-bottom:3px;line-height:1.25;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    #pdfExport .pdf-card-text{font-size:8.5px;line-height:1.32;color:#2c2013;flex:1;min-height:0;overflow:hidden}
+    #pdfExport .pdf-card-text p{margin:0 0 3px}
+    #pdfExport .pdf-card-text p:last-child{margin-bottom:0}
+    #pdfExport .pdf-card-text .ms{width:10px;height:10px;vertical-align:-2px}
+    #pdfExport .pdf-card-qty{position:absolute;top:4px;left:4px;z-index:3;background:rgba(0,0,0,.78);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:5px}
+    .pdf-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(8,7,5,.82);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:999;color:#fff;font-size:16px;font-weight:700}
+    .pdf-progress{width:min(340px,80vw);text-align:center}
+    .pdf-progress-label{font-family:'Inter',sans-serif;font-weight:600;font-size:13px;color:var(--text);margin-bottom:8px}
+    .pdf-progress-track{height:10px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+    .pdf-progress-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright));transition:width .25s ease}
+    .pdf-progress-pct{font-family:'Inter',sans-serif;font-weight:600;font-size:11px;color:var(--muted);margin-top:6px}
+    .preview-box{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;background:rgba(8,7,5,.94);display:flex;flex-direction:column}
+    .preview-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--ink-2);color:var(--text);font-family:'Inter',sans-serif;font-weight:600;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.5)}
+    .preview-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+    .preview-actions{display:flex;gap:8px;flex-shrink:0}
+    .btn-pdf{border:none;border-radius:7px;padding:10px 18px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:14px}
+    .btn-pdf.download{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));color:#211505}
+    .btn-pdf.close{background:var(--ink-3);color:var(--text);border:1px solid var(--line)}
+    .preview-frame{flex:1;width:100%;border:0;background:#fff}
+    .preview-fallback{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:26px;color:var(--text);font-family:'Inter',sans-serif;font-size:14.5px;line-height:1.65}
+    /* Painel de Estatísticas (modal, funciona em desktop e celular) */
+    .stats-box{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1100;background:rgba(8,7,5,.94);display:flex;flex-direction:column}
+    .stats-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--ink-2);color:var(--text);font-family:'Inter',sans-serif;font-weight:600;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.5)}
+    .stats-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+    .stats-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;max-width:640px;width:100%;margin:0 auto}
+    .stats-card{background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border:1px solid var(--line);border-radius:11px;padding:15px;margin-bottom:12px;box-shadow:inset 0 1px 0 rgba(242,204,107,.04)}
+    .stats-card h3{margin:0 0 12px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+    .stats-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;background:var(--ink-3);border:1px solid var(--line);color:var(--text)}
+    .chip.alt{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505}
+    .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .bar-lb{flex:0 0 92px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+    .bar-lb span{color:var(--text);font-variant-numeric:tabular-nums}
+    .bar-track{flex:1;height:14px;border-radius:999px;background:var(--ink);border:1px solid var(--line-soft);overflow:hidden}
+    .bar-fill{height:100%;border-radius:999px;transition:width .3s ease}
+    .stats-empty{padding:34px 16px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.7}
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px;border:2px solid var(--ink)}
+    ::-webkit-scrollbar-thumb:hover{background:var(--gold-dim);border:2px solid var(--ink)}
+    ::-webkit-scrollbar-corner{background:transparent}
+    /* ===== Calculadora de Vida ===== */
+    .lc-modal{position:fixed;inset:0;z-index:1240;background:rgba(8,7,5,.94);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .lc-box{width:min(480px,100%);background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.6);margin:auto}
+    .lc-box h2{margin:0 0 6px;font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .lc-box h2::before{content:"";width:4px;height:18px;border-radius:999px;background:linear-gradient(180deg,#e0642f,var(--danger));flex-shrink:0}
+    .lc-sub{color:var(--muted);font-size:12.5px;line-height:1.55;margin:0 0 14px}
+    .lc-count{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+    .lc-drawer .lc-count{grid-template-columns:repeat(3,1fr)}
+    .lc-count button{min-height:54px;border-radius:10px;background:var(--ink);border:1px solid var(--line);color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;line-height:1}
+    .lc-count b{font-size:22px;font-weight:800;color:var(--text)}
+    .lc-count span{font-size:10.5px;font-weight:600;font-variant:small-caps;color:inherit}
+    .lc-count button.active{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505}
+    .lc-count button.active b{color:#211505}
+    .lc-names{display:none;flex-direction:column;gap:11px;margin-top:2px}
+    .lc-names.on{display:flex}
+    .lc-names label{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;display:block}
+    .lc-names .lc-deck-lb{margin-top:10px}
+    .lc-names input,.lc-names select{width:100%;min-height:48px;font-size:16px}
+    .lc-names select{-webkit-appearance:none;appearance:none;text-overflow:ellipsis;padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,var(--gold) 50%),linear-gradient(135deg,var(--gold) 50%,transparent 50%);background-position:calc(100% - 17px) 21px,calc(100% - 12px) 21px;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+    .lc-names-hint{font-size:11.5px;line-height:1.45;color:var(--muted);border:1px dashed var(--line);border-radius:9px;padding:9px 11px}
+    .lc-start{margin-top:16px}
+    .lc-start .primary{width:100%;min-height:52px;font-size:15px}
+    .lc-start .ghost{width:100%;margin-top:9px}
+    /* Tela dos contadores */
+    .lifecalc{position:fixed;inset:0;z-index:1200;background:radial-gradient(ellipse 700px 420px at 50% -10%,rgba(213,83,63,.12),transparent 60%),var(--ink);display:flex;min-height:0}
+    .lc-rail{width:54px;flex-shrink:0;background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--safe-t)) 0 calc(8px + var(--safe-b))}
+    .lc-rail .grow{flex:1}
+    .lc-burger{width:42px;height:42px;border-radius:9px;border:1px solid var(--line);background:var(--ink);color:var(--text);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
+    .lc-burger svg{width:20px;height:20px}
+    .lc-burger:hover{border-color:var(--gold-dim);color:var(--gold-bright)}
+    .lc-grid{flex:1;min-width:0;display:grid;gap:12px;padding:14px;overflow-y:auto;-webkit-overflow-scrolling:touch;align-content:start}
+    .lc-grid.one{grid-template-columns:minmax(0,460px);justify-content:center}
+    .lc-grid.two,.lc-grid.three,.lc-grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .lc-card{position:relative;background:radial-gradient(120% 90% at 50% 0%,rgba(242,204,107,.07),transparent 62%),linear-gradient(180deg,var(--ink-3),var(--ink-2));border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"pname mana" "cmd life";gap:11px 10px;align-content:start;box-shadow:0 18px 40px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(242,204,107,.07);min-height:0;transition:border-color .18s ease,box-shadow .18s ease}
+    .lc-card:hover{border-color:var(--gold-dim);box-shadow:0 22px 46px -26px rgba(0,0,0,.95),0 0 0 1px rgba(220,177,74,.10),inset 0 1px 0 rgba(242,204,107,.10)}
+    .lc-card.span3{grid-column:1 / -1;justify-self:center;width:min(100%,calc(50% - 6px))}
+    .lc-pname{grid-area:pname;display:flex;align-items:center;gap:9px;min-width:0}
+    .lc-pnum{width:24px;height:24px;border-radius:50%;background:linear-gradient(155deg,var(--ink-4),var(--ink-3));border:1px solid var(--gold-dim);color:var(--gold);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(242,204,107,.14)}
+    .lc-name{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:pointer;letter-spacing:.2px;transition:color .15s ease}
+    .lc-name:hover{color:var(--gold-bright)}
+    .lc-cmd{grid-area:cmd;display:flex;flex-direction:column;gap:5px;min-width:0}
+    .lc-life{grid-area:life;display:flex;flex-direction:column;gap:5px;min-width:0}
+    .lc-cnt{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:6px;border-radius:12px;background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.14));border:1px solid var(--line-soft);box-shadow:inset 0 1px 3px rgba(0,0,0,.55);transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+    .lc-cnt.low{border-color:rgba(220,177,74,.42);box-shadow:inset 0 1px 3px rgba(0,0,0,.55),0 0 0 1px rgba(220,177,74,.10),0 0 16px -6px rgba(220,177,74,.55)}
+    .lc-cnt.dead{border-color:rgba(213,83,63,.48);background:linear-gradient(180deg,rgba(213,83,63,.16),rgba(0,0,0,.18));box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 0 18px -6px rgba(213,83,63,.55)}
+    .lc-mana{grid-area:mana;display:flex;gap:3px;align-items:center;justify-content:flex-end;flex-wrap:wrap;align-self:center;min-width:0;cursor:pointer;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.24);border:1px solid var(--line-soft);transition:border-color .15s ease,background .15s ease}
+    .lc-mana:hover{border-color:var(--gold-dim);background:rgba(0,0,0,.34)}
+    .lc-mana .ms{width:20px;height:20px;display:block;flex-shrink:0}
+    .lc-mana-none{font-size:9.5px;letter-spacing:.3px;color:var(--muted);white-space:nowrap}
+    .lc-mana-more{font-size:11px;line-height:1;color:var(--muted)}
+    .lc-num{display:flex;align-items:center;justify-content:center;text-align:center;font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;font-family:'Inter',sans-serif;color:var(--text);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;flex:0 1 auto;min-width:2.6ch;padding:0 2px;text-shadow:0 2px 6px rgba(0,0,0,.6);transition:color .18s ease,text-shadow .18s ease}
+    .lc-num .lc-numval{min-width:0;overflow:hidden;max-width:100%}
+    .lc-num.low .lc-numval{color:var(--gold-bright);text-shadow:0 0 14px rgba(220,177,74,.55)}
+    .lc-num.dead .lc-numval{color:var(--danger);text-shadow:0 0 14px rgba(213,83,63,.6)}
+    .lc-numin{width:4ch;min-width:0;text-align:center;font-size:22px;font-weight:800;padding:4px;border-radius:10px}
+    .lc-cap{position:relative;font-size:9.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);text-align:center;padding-top:7px;display:flex;align-items:center;justify-content:center;gap:5px}
+    .lc-cap::before{content:"";width:12px;height:1px;border-radius:999px;background:var(--line);flex-shrink:0}
+    .lc-cap.cmd{color:var(--gold)}
+    .lc-cap.cmd::before{background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+    .lc-cap.cmd{color:var(--gold)}
+    .lc-out{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--danger);background:rgba(213,83,63,.14);border:1px solid rgba(213,83,63,.45);border-radius:999px;padding:2px 7px;flex-shrink:0}
+    .lc-card.out{opacity:.85;border-color:rgba(213,83,63,.5);background:radial-gradient(120% 90% at 50% 0%,rgba(213,83,63,.10),transparent 62%),linear-gradient(180deg,rgba(213,83,63,.08),var(--ink-2))}
+    .lc-card.out .lc-name{text-decoration:line-through;text-decoration-color:rgba(213,83,63,.65);color:var(--muted)}
+    .lc-card.out .lc-pnum{border-color:rgba(213,83,63,.5);color:var(--danger)}
+    .lc-modal.hi{z-index:1450}
+    .lc-btn{flex:1 1 0;min-width:38px;min-height:44px;font-size:22px;font-weight:800;border-radius:11px;user-select:none;-webkit-user-select:none;touch-action:manipulation;padding:0;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:background .12s ease,border-color .12s ease,transform .08s ease}
+    .lc-btn:active{transform:scale(.94)}
+    .lc-life .lc-btn{min-width:30px;min-height:32px;font-size:16px;border-radius:9px}
+    .lc-btn.minus{color:#ff9d86;background:linear-gradient(180deg,rgba(213,83,63,.16),rgba(213,83,63,.07));border-color:rgba(213,83,63,.45);box-shadow:inset 0 1px 0 rgba(255,157,134,.14)}
+    .lc-btn.minus:hover{border-color:rgba(213,83,63,.75);background:linear-gradient(180deg,rgba(213,83,63,.24),rgba(213,83,63,.12))}
+    .lc-btn.minus:active{background:rgba(213,83,63,.32);box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+    .lc-btn.plus{color:#7fe3a3;background:linear-gradient(180deg,rgba(52,185,99,.16),rgba(52,185,99,.07));border-color:rgba(52,185,99,.45);box-shadow:inset 0 1px 0 rgba(127,227,163,.14)}
+    .lc-btn.plus:hover{border-color:rgba(52,185,99,.75);background:linear-gradient(180deg,rgba(52,185,99,.24),rgba(52,185,99,.12))}
+    .lc-btn.plus:active{background:rgba(52,185,99,.32);box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+    /* Drawer lateral */
+    .lc-scrim{position:fixed;inset:0;z-index:1290;background:rgba(8,7,5,.6);opacity:0;pointer-events:none;transition:opacity .18s}
+    .lc-scrim.on{opacity:1;pointer-events:auto}
+    .lc-drawer{position:fixed;top:0;left:0;bottom:0;width:min(300px,86vw);z-index:1300;background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border-right:1px solid var(--line);box-shadow:22px 0 60px rgba(0,0,0,.6);transform:translateX(-105%);transition:transform .2s ease;padding:calc(12px + var(--safe-t)) 10px calc(12px + var(--safe-b));display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .lc-drawer.on{transform:none}
+    .lc-drawer h3{margin:0 0 16px;font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .lc-drawer h3::before{content:"";width:4px;height:16px;border-radius:999px;background:linear-gradient(180deg,var(--gold-bright),var(--gold-dim));flex-shrink:0}
+    .lc-drawer .mi{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:13px 12px;border:1px solid var(--line-soft);background:var(--ink);color:var(--text);border-radius:10px;margin-bottom:8px;font-size:14px;font-weight:600;min-height:48px;justify-content:flex-start}
+    .lc-drawer .mi svg{width:18px;height:18px;flex-shrink:0;opacity:.85}
+    .lc-drawer .mi:hover{border-color:var(--gold-dim);color:var(--gold-bright)}
+    .lc-drawer .mi.danger{color:var(--danger)}
+    .lc-drawer .mi.danger:hover{border-color:var(--danger);background:rgba(213,83,63,.08);color:#ff9d86}
+    .lc-cfg-title{margin:6px 0 8px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gold)}
+    #lcCfgCustom{width:100%;min-height:48px;margin-bottom:10px}
+    .lc-toast{position:fixed;bottom:calc(18px + var(--safe-b));left:50%;transform:translateX(-50%);z-index:1400;background:var(--ink-3);border:1px solid var(--gold-dim);color:var(--text);padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.5);animation:fadeIn .2s ease;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis}
+    @media (max-width:700px){
+      .lc-rail{width:48px;gap:6px;padding:calc(6px + var(--safe-t)) 0 calc(6px + var(--safe-b))}
+      .lc-grid{padding:10px;gap:10px}
+      .lc-grid.one,.lc-grid.two,.lc-grid.three,.lc-grid.four{grid-template-columns:minmax(0,460px);justify-content:center}
+      .lc-card{padding:12px;grid-template-columns:1fr;grid-template-areas:"pname" "mana" "cmd" "life";gap:10px}
+      .lc-pname{grid-area:pname}
+      .lc-mana{grid-area:mana;justify-content:center;align-self:auto;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+      .lc-mana::-webkit-scrollbar{display:none}
+      .lc-cmd{grid-area:cmd}
+      .lc-life{grid-area:life;border-top:1px solid var(--line-soft);padding-top:12px}
+      .lc-card.span3{width:100%}
+      .lc-mana .ms{width:24px;height:24px}
+      .lc-cnt{padding:7px}
+      .lc-num{font-size:38px;min-width:2.8ch}
+      .lc-btn{min-height:52px;max-width:120px;font-size:24px}
+      .lc-life .lc-btn{min-width:34px;min-height:38px;max-width:64px;font-size:18px;border-radius:9px}
+      .lc-box{padding:18px 14px}
+      .lc-drawer .mi{margin-bottom:6px;padding:12px 10px}
+    }
+    @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="h-top">
+      <div><h1>Deck Tradutor · Commander</h1><div class="subtitle">Lista → carta em inglês → tradução em PT-BR (impressão oficial ou automática)</div></div>
+      <div class="h-actions">
+        <div class="hgrp" role="group" aria-label="Ações de tradução">
+          <button id="verifyBtn" class="btn-action" type="button" disabled title="Verificar e forçar tradução de cartas pendentes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span class="lbl">Verificar</span></button>
+          <button id="translateAllBtn" class="btn-action" type="button" disabled title="Traduzir as cartas pendentes do deck (em paralelo, usa cache sempre que possível)" data-short="Traduzir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span class="lbl">Traduzir pendentes</span></button>
+        </div>
+        <div class="hgrp" role="group" aria-label="Exportação">
+          <button id="savePdfBtn" class="btn-action primary" type="button" disabled title="Salvar deck como PDF com imagens e traduções PT" data-short="PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl">Salvar deck em PDF</span></button>
+        </div>
+        <div class="hgrp" role="group" aria-label="Ferramentas">
+          <button id="statsBtn" class="btn-action" type="button" title="Ver estatísticas do deck (cores, tipos, curva de mana)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 13v4"/><path d="M12 9v8"/><path d="M17 5v12"/></svg>Stats</button>
+          <button id="reload" class="icon-btn ghost" type="button" title="Limpar cache e recarregar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+        </div>
+        <div class="hgrp" role="group" aria-label="Calculadora de vida">
+          <button id="calcLifeBtn" class="btn-action" type="button" title="Abrir calculadora de vida (contador de pontos de vida)" data-short="Vida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="lbl">Calc. Vida</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <div class="layout">
+    <section class="panel list-panel">
+      <div class="panel-head">
+        <div><h2>Lista de cartas</h2><span class="hint" id="listInfo">0 cartas · 0 nomes</span></div>
+        <div class="dd-wrap">
+          <button id="savedDecksBtn" class="btn-action" type="button" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Decks salvos<span id="savedDecksBadge" class="dd-badge hidden">0</span></button>
+          <div id="savedDecksMenu" class="dd-menu hidden" role="menu"></div>
+        </div>
+      </div>
+      <textarea id="list" spellcheck="false" placeholder="1 por linha · qtd opcional:&#10;1 Kinnan, Bonder Prodigy&#10;12 Forest&#10;2x Snap&#10;# comentários são ignorados">1 Kinnan, Bonder Prodigy
+1 Birds of Paradise
+1 Utopia Tree
+1 Counterspell
+1 Basalt Monolith
+1 Staff of Domination
+1 Tamiyo, Collector of Tales
+12 Forest
+12 Island
+1 Command Tower</textarea>
+      <div id="parseHint" class="status"></div>
+      <div class="row">
+        <button id="load" class="primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Carregar</button>
+        <button id="saveDeckBtn" class="ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Salvar</button>
+        <button id="clear" class="ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Limpar</button>
+      </div>
+      <div id="status" class="status"></div>
+      <input id="lsearch" class="lsearch" type="search" placeholder="Filtrar lista…" autocomplete="off" />
+      <div id="lbody" class="list-scroll"></div>
+    </section>
+    <nav id="ptTabs" class="pt-tabs" aria-label="Idioma da visualização">
+      <button type="button" class="seg-btn" data-lang="en">Inglês</button>
+      <button type="button" class="seg-btn" data-lang="pt">Português</button>
+    </nav>
+    <section class="panel view-panel" id="enWrap">
+      <div class="panel-head"><div><h2>Carta em inglês</h2><span class="hint">original · Scryfall</span></div></div>
+      <div id="enPanel" class="view"><div class="placeholder">Clique numa carta da lista ao lado.</div></div>
+    </section>
+    <section class="panel view-panel" id="ptWrap">
+      <div class="panel-head"><div><h2>Tradução PT-BR</h2><span class="hint">impressão oficial ou automática</span></div></div>
+      <div id="ptPanel" class="view"><div class="placeholder">A tradução aparecerá aqui.</div></div>
+    </section>
+  </div>
+</main>
+<div id="lcModal" class="lc-modal hidden">
+  <div class="lc-box">
+    <h2>Calculadora de Vida</h2>
+    <p class="lc-sub">Quantos jogadores? Escolha 1 a 4 abaixo e confira os nomes depois.</p>
+    <div class="lc-count" id="lcCount"></div>
+    <div class="lc-names" id="lcNames"></div>
+    <div class="lc-start">
+      <button id="lcStart" class="primary" type="button" disabled>Iniciar</button>
+      <button id="lcCloseModal" class="ghost" type="button">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="lcDefeat" class="lc-modal hi hidden">
+  <div class="lc-box">
+    <h2 id="lcDefeatName">Perdeu</h2>
+    <p class="lc-sub" id="lcDefeatMsg"></p>
+    <div class="lc-start"><button id="lcDefeatOk" class="primary" type="button">Entendi</button></div>
+  </div>
+</div>
+<div id="lifeCalc" class="lifecalc hidden">
+  <div class="lc-rail">
+    <button id="lcBurger" type="button" class="lc-burger" aria-label="Abrir menu da calculadora" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg></button>
+    <div class="grow"></div>
+    <button id="lcRailExit" type="button" class="lc-burger" aria-label="Sair da calculadora de vida" title="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
+  </div>
+  <div id="lcGrid" class="lc-grid"></div>
+</div>
+<div id="lcScrim" class="lc-scrim"></div>
+<aside id="lcDrawer" class="lc-drawer" aria-label="Menu da calculadora de vida">
+  <h3>Calculadora de Vida</h3>
+  <button type="button" class="mi" id="lcMenuNewGame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>Novo jogo</button>
+  <button type="button" class="mi" id="lcMenuReset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Resetar contadores</button>
+  <button type="button" class="mi" id="lcMenuNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>Novo deck</button>
+  <button type="button" class="mi" id="lcMenuDecks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Deck salvo</button>
+  <button type="button" class="mi" id="lcMenuSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg>Configurações</button>
+  <button type="button" class="mi danger" id="lcMenuExit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>Sair</button>
+  <div id="lcSettingsWrap" class="hidden">
+    <p class="lc-cfg-title">Vida inicial</p>
+    <div class="lc-count" id="lcCfgOpts"></div>
+    <input id="lcCfgCustom" class="hidden" type="number" inputmode="numeric" min="1" max="999" placeholder="Ex.: 20" autocomplete="off" />
+    <button type="button" id="lcCfgApply" class="primary" style="width:100%">Aplicar</button>
+  </div>
+</aside>
+<div id="statsBox" class="stats-box hidden">
+  <div class="stats-bar">
+    <span class="stats-title">📊 Estatísticas do deck</span>
+    <div class="preview-actions">
+      <button type="button" class="btn-pdf close" id="statsClose">Fechar</button>
+    </div>
+  </div>
+  <div class="stats-body">
+    <div class="stats-chips" id="stChips"></div>
+    <div class="stats-card"><h3>Cores (mana cost)</h3><div id="stColors"></div></div>
+    <div class="stats-card"><h3>Tipos de carta</h3><div id="stTypes"></div></div>
+    <div class="stats-card"><h3>Custo de mana convertido</h3><div id="stCurve"></div></div>
+  </div>
+</div>
+<div id="pdfExport"></div>
+<script>
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cacheKey=n=>"deckpt_v1_"+n.toLowerCase();
+const autoKey=n=>"deckpt_auto_v4_"+n.toLowerCase(); // v4: type line determinístico + batching + fixup
+// Cache negativo: nomes que SÓ falharam com "não encontrada" RAÍZ (404) são
+// marcados por um tempo. Falhas transitórias (rate-limit, timeout, rede) NÃO
+// entram nesse cache — senão cartas válidas ficam travadas até limpar tudo.
+const NF_TTL=7*864e5; // 7 dias
+const nfKey=n=>"deckpt_nf_v1_"+n.toLowerCase();
+function isNfCached(name){
+  try{
+    const s=localStorage.getItem(nfKey(name));
+    if(!s)return false;
+    const j=JSON.parse(s);
+    if(!j||!j.t)return false;
+    if(Date.now()-j.t>NF_TTL){localStorage.removeItem(nfKey(name));return false}
+    return true;
+  }catch(_){return false}
+}
+function setNfCache(name){
+  try{localStorage.setItem(nfKey(name),JSON.stringify({t:Date.now()}))}catch(_){}
+}
+function clearNfCache(name){
+  try{localStorage.removeItem(nfKey(name))}catch(_){}
+}
+const state={items:[],busy:false,selected:null};
+
+// ===== Parse da lista =====
+// Limpa ruído de exportadores (Moxfield/Archidekt): "Forest (UNF)", "Sol Ring (CMM) 40",
+// "3 Swiftfoot Boots (M21) 245/280", "(Borderless)", "(foil)", nº de coleção — nada disso
+// pertence ao nome da carta e faria o Scryfall retornar 404 (o endpoint exact é literal).
+// CUIDADO: números SÓ são removidos quando seguem um parêntese de set code — cartas reais
+// terminam em dígito ("Pain 101", "Pip-Boy 3000", "Naturalize 2") e não podem ser mutiladas.
+function cleanCardName(raw){
+  let s=String(raw||"").trim();
+  let sawParen=false;
+  // "(CMM) 40", "(M21) 245/280", "(UNF)" removidos de uma vez (parêntese no fim
+  // com ou sem número de coleção logo depois). Depois que um parêntese foi removido,
+  // um número solto restante também é colecionadora ("Sol Ring 40 (CMM)").
+  for(let i=0;i<4;i++){
+    const pre=s;
+    s=s.replace(/\s*\([^()]*\)(?:\s+\d+(?:\s*\/\s*\d+)?)?\s*$/,"");
+    if(s!==pre)sawParen=true;
+    if(sawParen)s=s.replace(/\s+\d+(?:\s*\/\s*\d+)?\s*$/,"");
+    if(s===pre)break;
+  }
+  return s;
+}
+function parseList(raw){
+  const items=[],idx=new Map();
+  for(const rawLine of raw.split(/\r?\n/)){
+    const t=rawLine.trim();
+    if(!t||t.startsWith('#')||t.startsWith('//'))continue;
+    const m=t.match(/^(\d{1,3})[xX×]?\s+(.+)$/);
+    let qty=1,name=t;
+    if(m){qty=Math.max(1,parseInt(m[1],10));name=m[2].trim()}
+    else if(/^[xX×]\s+/.test(t))name=t.replace(/^[xX×]\s+/,"").trim(); // "× Ugin, the Spirit Dragon" = 1x
+    name=cleanCardName(name);
+    if(!name)continue;
+    const prev=idx.get(name);
+    if(prev!=null)items[prev].qty+=qty;
+    else{idx.set(name,items.length);items.push({name,qty})}
+  }
+  return items;
+}
+
+// ===== Rede (Scryfall + tradução) =====
+async function fetchWithTimeout(url,opt,timeout=18000){
+  const ctrl=new AbortController();
+  const id=setTimeout(()=>ctrl.abort(),timeout);
+  try{return await fetch(url,{...(opt||{}),signal:ctrl.signal})}
+  finally{clearTimeout(id)}
+}
+async function fetchJson(url,retries=4){
+  let lastErr=null;
+  for(let i=0;i<retries;i++){
+    try{
+      const res=await fetchWithTimeout(url,{headers:{Accept:"application/json"}});
+      if(res.status===429){
+        const ra=parseInt(res.headers.get("Retry-After")||"0",10);
+        await sleep(ra>0?Math.min(ra*1000,60000):1200*(i+1));
+        continue;
+      }
+      const j=await res.json().catch(()=>null);
+      if(!res.ok){
+        const err=new Error("HTTP "+res.status+(j&&j.details?" — "+j.details:""));
+        err.status=res.status;
+        throw err;
+      }
+      return j;
+    }catch(e){
+      lastErr=e;
+      if(e&&e.status>=400&&e.status<500)throw e; // erro do cliente (ex: 404) não se resolve tentando de novo
+      if(i===retries-1)break;
+      await sleep(900*(i+1));
+    }
+  }
+  if(lastErr instanceof TypeError){
+    throw new Error("Falha de rede/CORS ao acessar o serviço. Verifique sua conexão.");
+  }
+  if(lastErr&&lastErr.name==="AbortError"){
+    throw new Error("Tempo esgotado ao acessar o serviço. Tente novamente em instantes.");
+  }
+  throw lastErr||new Error("Sem resposta do serviço.");
+}
+function normName(s){
+  return String(s||"")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // remove acentos
+    .replace(/[’‘`´]/g,"'").replace(/[“”]/g,'"')
+    .replace(/\s+/g," ").trim().toLowerCase();
+}
+function sanitizeQuery(s){
+  return String(s||"").replace(/[’‘`´]/g,"'").replace(/[“”]/g,'"').trim();
+}
+// Impressões textless (ex.: basic lands full-art) têm printed_text só com símbolos
+// de mana ("U") ou nenhum texto. Um texto "real" precisa conter palavras (>=2 letras),
+// pois "U"/"{U}" (símbolo puro) também é uma letra.
+function hasRealText(s){
+  return /[a-zà-úç]{2,}/i.test(s||"");
+}
+// Stopwords PT — no fallback por token, o token mais longo SEM stopword é o
+// mais "distintivo" para a busca (ex.: "Lobo da Putrefação" → "putrefacao").
+const PT_STOP=new Set("e de da do dos das em no na nos nas o os a as um uma que para por com ao aos à às se não".split(" "));
+// Similaridade Levenshtein normalizada (0..1) — casa impressões PT com
+// pequenas diferenças de grafia (acentos já removidos por normName).
+function levRatio(a,b){
+  const m=a.length,n=b.length;
+  if(!m||!n)return m===n?1:0;
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)dp[i][0]=i;
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  }
+  return 1-dp[m][n]/Math.max(m,n);
+}
+// Similaridade de nome impresso: 1 se idêntico (sem acentos); senão pondera
+// tokens em comum + distância de edição. Usado para escolher/aceitar impressões PT.
+function nameSim(a,b){
+  const x=normName(a),y=normName(b);
+  if(!x||!y)return 0;
+  if(x===y)return 1;
+  const tx=x.split(" "),ty=y.split(" ");
+  const inter=tx.filter(w=>ty.includes(w)).length;
+  return 0.55*inter/Math.max(tx.length,ty.length)+0.45*levRatio(x,y);
+}
+// Cartas com duas faces (split, adventure, transform, MDFC) vêm do Scryfall
+// com name = "Frente // Verso". O jogador costuma digitar só uma das metades,
+// então aceitamos o nome completo OU qualquer uma das faces.
+function nameMatches(cardName,typed){
+  const t=normName(typed);
+  if(normName(cardName)===t)return true;
+  if(cardName.includes(" // ")){
+    return cardName.split(" // ").some(face=>normName(face)===t);
+  }
+  return false;
+}
+async function fetchByPtName(name){
+  // Escada de tentativas pelo NOME EM PORTUGUÊS impresso, porque o buscador
+  // da Scryfall é inconsistente com nomes acentuados e tokens compostos:
+  //   1) frase exata  2) frase sem acentos  3) todos os tokens  4) token distintivo
+  // Casamento final: normalizado (ignora acentos); threshold >= 0.8 aceita.
+  // unique=cards (em vez de prints) basta para achar O nome: 1 carta por oracle_id,
+  // resposta ~10x menor e evita baixar todas as reimpressões PT só para comparar.
+  const want=normName(name);
+  const candidates=[];
+  const doneFaces=new Set();
+  // Se TODAS as variações falharem por erro transitório (429/timeout/rede),
+  // lança para o chamador saber que NÃO é "não encontrada" — evita cache negativo falso.
+  let transient=null;
+  async function collect(query){
+    try{
+      const s=await fetchJson(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&format=json`);
+      if(s&&s.data)for(const c of s.data){
+        if(c&&c.printed_name&&!doneFaces.has(c.printed_name)){
+          doneFaces.add(c.printed_name);
+          const pn=normName(c.printed_name);
+          // Cartas com duas faces vêm como "Frente // Verso": casa a face inteira
+          // OU qualquer uma das metades (split, transform, MDFC, adventure).
+          const faces=pn.split(" // ");
+          const score=faces.some(f=>f===want)?2:(pn?nameSim(c.printed_name,name):0);
+          candidates.push({c,score});
+        }
+      }
+    }catch(e){
+      if(!e||e.status!==404){ // 404 (sem resultado) é OK, resto é transitório
+        if(!transient)transient=e||new Error("erro transitório");
+      }
+      /* tenta a próxima variação */
+    }
+  }
+  const plain=sanitizeQuery(name).replace(/"/g,"").trim();
+  const deac=normName(name);
+  const toks=deac.split(" ").filter(Boolean);
+  const done=()=>candidates.some(x=>x.score>=2);
+  await collect(`!"${plain}" lang:pt unique:cards`);
+  if(!done()&&plain!==deac)await collect(`"${deac}" lang:pt unique:cards`);
+  if(!done()&&toks.length>=1)await collect(`${toks.join(" ")} lang:pt unique:cards`);
+  if(!done()&&toks.length>=1){
+    const dt=toks.filter(t=>!PT_STOP.has(t)).sort((a,b)=>b.length-a.length);
+    const main=dt.length?dt:toks;
+    for(const t of main.slice(0,3)){
+      await collect(`${t.replace(/[^a-z0-9]+/g,"")} lang:pt unique:cards`);
+      if(done())break;
+    }
+  }
+  if(!candidates.length){
+    if(transient)throw transient;
+    return null;
+  }
+  let best=null,bs=0;
+  for(const x of candidates)if(x.score>bs){bs=x.score;best=x.c}
+  if(bs>=2)return best;
+  // Sem match exato (score 2): só confia em match parcial >= 0.8 se a escada
+  // terminou sem erros transitórios. Com erro de rede, "best" pode ser carta errada
+  // (e o cache negativo marcaria um nome válido como inexistente).
+  if(transient)throw transient;
+  return bs>=0.8?best:null;
+}
+// Fallback EN por busca textual: quando named?exact E named?fuzzy 404, o Scryfall
+// ainda pode achar a carta por tokens via /cards/search. Cobre variações de grafia
+// que o fuzzy considera ambíguo (ele 404 quando >1 carta "quase" casa) e nomes com
+// palavras extra. threshold menor (0.7) porque é o último recurso antes de falhar.
+async function searchByName(name){
+  const want=normName(name);
+  if(!want)return null;
+  const toks=want.split(" ").filter(t=>t.length>1&&!PT_STOP.has(t));
+  if(!toks.length)return null;
+  const q=toks.slice(0,3).join(" ");
+  let s;
+  try{s=await fetchJson(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}&unique=cards&format=json`)}catch(e){throw e}
+  if(!s||!s.data)return null;
+  let best=null,bs=0;
+  for(const c of s.data){
+    if(!c)continue;
+    let sc=nameSim(c.name||"",name);
+    if(c.card_faces){for(const f of c.card_faces)sc=Math.max(sc,nameSim(f.name||"",name))}
+    if(sc>bs){bs=sc;best=c}
+  }
+  return bs>=0.7?best:null;
+}
+// Sugestões quando a carta NÃO existe no Scryfall: busca por tokens distintivos
+// (o mesmo princípio do searchByName) e devolve os nomes mais parecidos para o
+// usuário corrigir com um clique — o Scryfall não tem "você quis dizer" nativo.
+async function suggestCards(name){
+  const want=normName(name);
+  if(!want)return[];
+  const toks=want.split(" ").filter(t=>t.length>1&&!PT_STOP.has(t)).sort((a,b)=>b.length-a.length);
+  if(!toks.length)return[];
+  const seen=new Set();
+  const cand=[];
+  const add=q=>fetchJson(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}&unique=cards&format=json`)
+    .then(s=>{
+      if(s&&s.data)for(const c of s.data){
+        if(!c||!c.name||seen.has(c.name))continue;
+        seen.add(c.name);
+        let sc=nameSim(c.name,name);
+        if(c.card_faces)for(const f of c.card_faces)sc=Math.max(sc,nameSim(f.name||"",name));
+        cand.push({name:c.name,set:c.set_name||"",score:sc});
+      }
+    }).catch(()=>{});
+  // Tenta o token mais longo primeiro; senão o próximo (fallback em cascata).
+  // Testado: "Monarch's Decree" → token "decree" encontra "Marchesa's Decree".
+  const pending=toks.slice(0,3).map(t=>`name:${t}`);
+  for(const p of pending){await add(p);if(cand.length>=6)break}
+  cand.sort((a,b)=>b.score-a.score);
+  return cand.filter(c=>c.score>=0.35).slice(0,5);
+}
+async function fetchNamed(name){
+  const q=sanitizeQuery(name);
+  // Erros transitórios (rede, timeout, 429) NÃO podem virar "não encontrada":
+  // essa escada pode custar várias requisições; se o Scryfall estiver lento,
+  // a carta válida não deve ficar marcada como inexistente para sempre.
+  let transient=null;
+  const markTransient=e=>{if(e&&e.status===404){ /* 404 é definitivo */ }else if(!transient)transient=e||new Error("erro transitório")};
+  const enExact=async()=>{try{const en=await fetchJson(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(q)}`);if(en&&typeof en==="object"&&en.name&&nameMatches(en.name,name))return en;}catch(e){markTransient(e)}return null};
+  const enFuzzy=async()=>{try{const fz=await fetchJson(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(q)}`);if(fz&&typeof fz==="object"&&fz.name)return fz;}catch(e){markTransient(e)}return null};
+  const ptSearch=async()=>{try{const pt=await fetchByPtName(name);if(pt&&pt.name){pt.__ptSelf=true;return pt}}catch(e){markTransient(e)}return null};
+  // Fallback textual (EN): quando exact/fuzzy não acham, tenta /cards/search por
+  // tokens — resolve variações que o fuzzy considera ambíguo (ele 404 se >1 casa).
+  const textSearch=async()=>{try{const c=await searchByName(name);if(c&&c.name)return c}catch(e){markTransient(e)}return null};
+  // Nome provavelmente PT (acentos ou artigos PT) → começa pela impressão PT,
+  // evitando 2 x 404 em inglês que só atrasam e disparavam rate-limit.
+  // Nome EN → exact EN (1 request na maioria) → fuzzy EN (resolve typos num só
+  // request, o próprio endpoint é case/punctuation-insensitive) → só então a
+  // escada PT, que é a mais cara (várias buscas).
+  const looksPt=name&&(/[^\x00-\x7f]/.test(name)||/(^|\s)(de|da|do|dos|das|em|no|na|nos|nas|um|uma)\s/i.test(name.trim()+" "));
+  if(looksPt){
+    const pt=await ptSearch();if(pt)return pt;
+    const en=await enExact();if(en)return en;
+    const fz=await enFuzzy();if(fz)return fz;
+    const tx=await textSearch();if(tx)return tx;
+  }else{
+    const en=await enExact();if(en)return en;
+    const fz=await enFuzzy();if(fz)return fz;
+    const pt=await ptSearch();if(pt)return pt;
+    const tx=await textSearch();if(tx)return tx;
+  }
+  // Só marca cache negativo se a carta REALMENTE não existe (nenhum erro
+  // transitório durante a escada). Senão, devolve o erro transitório para
+  // o fluxo marcar como "tente de novo" em vez de "não encontrada".
+  if(transient){
+    const msg=transient.message||"falha de rede";
+    throw new Error(`Erro ao buscar "${name}" (${msg}). Rede lenta ou limite de requisições — tente novamente em instantes.`);
+  }
+  setNfCache(name);
+  throw new Error(`Carta não encontrada (tentei em inglês e em português): ${name}`);
+}
+async function fetchPtPrint(name,enCard){
+  // Reusa a escada de nomes PT; prefere impressão com tipo impresso e,
+  // entre iguais, a mais recente (a Scryfall já volta order released desc).
+  // Textless (full-art) tem printed_text só com símbolos → volta mesmo assim;
+  // a tradução das regras fica com o painel PT (fallback automático).
+  if(enCard&&enCard.oracle_id){
+    try{
+      const q=`oracleid:${enCard.oracle_id} lang:pt`;
+      const s=await fetchJson(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}&unique=prints&order=released&dir=desc&format=json`);
+      if(s&&s.data&&s.data.length){
+        // Prioriza impressão que realmente tenha TEXTO impresso em PT. Sem isso,
+        // terrenos básicos caíam na versão full-art (sem texto) e ficavam sem tradução.
+        const withText=s.data.find(c=>c&&ptOfficialRules(c));
+        if(withText)return withText;
+        const withPrinted=s.data.find(c=>c&&c.printed_name!=null&&c.printed_type_line!=null);
+        return withPrinted||s.data[0];
+      }
+    }catch(_){/* cai para busca por nome impresso PT */}
+  }
+  const fromSearch=await fetchByPtName(name);
+  if(!fromSearch)return null;
+  return fromSearch;
+}
+async function getEntry(name,force){
+  const ck=cacheKey(name);
+  if(!force&&isNfCached(name))throw new Error(`Carta não encontrada antes (cache negativo). Use "Verificar" ou "Re-carregar cache" para tentar de novo: ${name}`);
+  let e=null;
+  if(!force){try{const s=localStorage.getItem(ck);if(s)e=JSON.parse(s)}catch(_){}}
+  if(!e||!e.en){
+    e=e||{en:null,pt:null};
+    const card=await fetchNamed(name);
+    await clearNfCache(name);
+    if(card.__ptSelf){delete card.__ptSelf;e.pt=card} // achou pelo nome em PT: já é a própria impressão PT
+    e.en=card;
+    try{localStorage.setItem(ck,JSON.stringify(e))}catch(_){}
+  }
+  return e;
+}
+
+// ===== Tradução automática (múltiplos provedores + glossário oficial de Magic) =====
+
+// --- Proteção de símbolos de mana {W}{U}{2} etc. — não deixa o tradutor mexer neles ---
+// Usa tags XML <mtN> que os tradutores preservam nativamente (não mutilam como "@@T1@@").
+function protectMana(text){
+  const toks=[];
+  const replaced=text.replace(/\{[^}]+\}/g,m=>{
+    toks.push(m);
+    const n=toks.length;
+    return"<mt"+n+">"+m.slice(1,-1)+"</mt"+n+">";
+  });
+  return{text:replaced,toks};
+}
+function restoreMana(text,toks){
+  // Tolerante: alguns tradutores inserem espaços ou mudam a caixa das tags.
+  return text.replace(/<\s*mt\s*(\d+)\s*>[^<]*<\s*\/\s*mt\s*\d+\s*>/gi,(m,i)=>toks[Number(i)-1]||m)
+             .replace(/<\s*mt\s*(\d+)\s*>/gi,(m,i)=>toks[Number(i)-1]||m);
+}
+// Texto-lembrete de terreno básico: traduzido localmente, sem depender de serviço externo.
+// (Terrenos básicos são a maior parte de um deck e o texto é sempre o mesmo padrão.)
+const BASIC_LAND_MANA={W:"{W}",U:"{U}",B:"{B}",R:"{R}",G:"{G}",C:"{C}"};
+function localReminderText(rules){
+  if(!rules)return null;
+  const m=rules.match(/^\s*\(\{T\}:\s*Add\s*(\{[WUBRGC]\})\.?\s*\)\s*$/i);
+  if(m)return `({T}: Adicione ${m[1]}.)`;
+  return null;
+}
+
+// --- Glossário de palavras-chave oficiais em PT-BR (Wizards/regras oficiais) ---
+// Evita que o tradutor automático "invente" um termo diferente do usado nas cartas
+// impressas em português (ex.: "Trample" tem que virar "Atropelar", não "atropelamento").
+// Usa tags XML <kmN> que os tradutores preservam (composto com o placeholder de mana <mtN>).
+const GLOSSARY_RAW=[
+  // Palavras-chave de combate/regras
+  [/\bdouble strike\b/gi,"golpe duplo"],
+  [/\bfirst strike\b/gi,"iniciativa"],
+  [/\bdeathtouch\b/gi,"toque mortífero"],
+  [/\bhexproof\b/gi,"resistência a magia"],
+  [/\bindestructible\b/gi,"indestrutível"],
+  [/\blifelink\b/gi,"vínculo com a vida"],
+  [/\bvigilance\b/gi,"vigilância"],
+  [/\btrample\b/gi,"atropelar"],
+  [/\bmenace\b/gi,"ameaçar"],
+  [/\bflying\b/gi,"voar"],
+  [/\breach\b/gi,"alcance"],
+  [/\bhaste\b/gi,"ímpeto"],
+  [/\bdefender\b/gi,"defensor"],
+  [/\bflash\b/gi,"lampejo"],
+  [/\bprotection\b/gi,"proteção"],
+  [/\bshroud\b/gi,"manto"],
+  [/\bfear\b/gi,"amedrontar"],
+  [/\benchant\b/gi,"encantar"],
+  [/\bequip\b/gi,"equipar"],
+  [/\bflashback\b/gi,"recapturar"],
+  [/\bforetell\b/gi,"predizer"],
+  [/\bforecast\b/gi,"previsão"],
+  [/\bcascade\b/gi,"cascata"],
+  [/\bconvoke\b/gi,"convocar"],
+  [/\bdevour\b/gi,"devorar"],
+  [/\bpersist\b/gi,"persistir"],
+  [/\bwither\b/gi,"murchar"],
+  [/\binfect\b/gi,"infectar"],
+  [/\bexalted\b/gi,"exaltado"],
+  [/\banded\b/gi,"aliança"],
+  [/\bsuspend\b/gi,"suspender"],
+  [/\bdredge\b/gi,"dragar"],
+  [/\bentwine\b/gi,"entrelaçar"],
+  [/\bprowl\b/gi,"rastejar"],
+  [/\bsplit second\b/gi,"fração de segundo"],
+  [/\bamass\b/gi,"amassar"],
+  [/\bdaybound\b/gi,"condição dia"],
+  [/\bnightbound\b/gi,"condição noite"],
+  [/\bcasualty\b/gi,"baixa"],
+  [/\bcleave\b/gi,"fender"],
+  [/\bcompleated\b/gi,"completo"],
+  [/\blandfall\b/gi,"alvorecer"],
+  [/\bscry\b/gi,"vidência"],
+  [/\bsurveil\b/gi,"vistoria"],
+  [/\bventure\b/gi,"aventurar-se"],
+  [/\bdescend\b/gi,"descender"],
+  [/\bascend\b/gi,"ascender"],
+  [/\badapt\b/gi,"adaptar"],
+  [/\briot\b/gi,"tumulto"],
+  // Termos comuns de texto de carta (taxas, mecânicas) que tradutores erram
+  [/\bMana pool\b/gi,"reserva de mana"],
+  [/\bmana value\b/gi,"valor de mana"],
+  [/\bconverted mana cost\b/gi,"custo de mana convertido"],
+  [/\bCreatures you control\b/gi,"criaturas que você controla"],
+  [/\bSearch your library\b/gi,"procure em sua biblioteca"],
+  [/\bSearch your graveyard\b/gi,"procure em seu cemitério"],
+  [/\bDestroy target creature\b/gi,"destrua a criatura alvo"],
+  [/\bDraw three cards\b/gi,"compre três cartas"],
+  [/\bDraw two cards\b/gi,"compre duas cartas"],
+  [/\bDiscard two cards\b/gi,"descarte duas cartas"],
+  [/\bCreate three\b/gi,"crie três"],
+  [/\bDraw a card\b/gi,"compre uma carta"],
+  [/\bDiscard a card\b/gi,"descarte uma carta"],
+  [/\bDestroy target\b/gi,"destrua o alvo"],
+  [/\bDestroy all\b/gi,"destrua todas"],
+  [/\bTarget opponent\b/gi,"oponente alvo"],
+  [/\bTarget creature\b/gi,"criatura alvo"],
+  [/\bTarget player\b/gi,"jogador alvo"],
+  [/\bThis creature\b/gi,"esta criatura"],
+  [/\bThis spell\b/gi,"esta mágica"],
+  [/\bCreate a\b/gi,"crie uma"],
+  [/\bCreate two\b/gi,"crie duas"],
+  [/\bEach player\b/gi,"cada jogador"],
+  [/\bEnters the battlefield\b/gi,"entra no campo de batalha"],
+  [/\bLeaves the battlefield\b/gi,"sai do campo de batalha"],
+  [/\bEnter the battlefield\b/gi,"entrar no campo de batalha"],
+  [/\bPut onto the battlefield\b/gi,"coloque no campo de batalha"],
+  [/\bUntil end of turn\b/gi,"até o final do turno"],
+  [/\bAt the beginning of your upkeep\b/gi,"no início de sua manutenção"],
+  [/\bDuring your upkeep\b/gi,"durante sua manutenção"],
+  [/\bIn addition to its other types\b/gi,"além de seus outros tipos"],
+  [/\bIs a creature in addition to its other types\b/gi,"é uma criatura além de seus outros tipos"],
+  [/\bCombat damage to a player\b/gi,"dano de combate a um jogador"],
+  [/\bCombat damage to a Planeswalker\b/gi,"dano de combate a um planeswalker"],
+  [/\bGains double strike\b/gi,"ganha golpe duplo"],
+  [/\bGains first strike\b/gi,"ganha iniciativa"],
+  [/\bConverted mana cost\b/gi,"custo de mana convertido"],
+  [/\bBattlefield\b/gi,"campo de batalha"],
+  [/\bGraveyard\b/gi,"cemitério"],
+  [/\bAdd\b/gi,"adicione"],
+  [/\bExile\b/gi,"exile"],
+  [/\bUntap\b/gi,"desgire"],
+  [/\bDestroy\b/gi,"destrua"],
+  [/\bReturn\b/gi,"devolva"],
+  [/\bShuffle\b/gi,"embaralhe"],
+  [/\bPermanent\b/gi,"permanente"],
+  [/\bToken\b/gi,"ficha"],
+  [/\bDamage\b/gi,"dano"],
+  [/\bMana\b/gi,"mana"],
+  [/\bTap\b/gi,"gire"],
+  [/\bCard\b/gi,"carta"],
+  [/\bLife\b/gi,"vida"],
+  [/\bYou control\b/gi,"você controla"],
+  [/\bControl\b/gi,"controle"],
+  [/\bSacrifice\b/gi,"sacrifique"],
+  [/\bCost\b/gi,"custo"],
+  [/\bWhenever\b/gi,"sempre que"],
+  [/\bPay\b/gi,"pague"]
+];
+// Substantivos "raça/classe" — preservados no glossário (texto de regras) e usados
+// também na tradução tokenizada do type line (subtipos).
+const PT_CREATURE_TYPES={
+  Angel:"Anjo",Assassin:"Assassino",Avatar:"Avatar",Beast:"Fera",Berserker:"Berserker",
+  Bird:"Ave",Cat:"Gato",Cleric:"Clérigo",Construct:"Constructo",Demon:"Demônio",
+  Devil:"Diabo",Djinn:"Gênio",Dragon:"Dragão",Druid:"Druida",Elemental:"Elemental",
+  Elf:"Elfo",Giant:"Gigante",Goblin:"Goblin",Horror:"Horror",Human:"Humano",
+  Illusion:"Ilusão",Knight:"Cavaleiro",Merfolk:"Tritão",Nightmare:"Pesadelo",
+  Ogre:"Ogro",Rogue:"Ladino",Shaman:"Xamã",Snake:"Serpente",Soldier:"Soldado",
+  Spirit:"Espírito",Thief:"Ladrão",Troll:"Troll",Vampire:"Vampiro",Warrior:"Guerreiro",
+  Werewolf:"Lobisomem",Wizard:"Mago",Wolf:"Lobo",Zombie:"Zumbi",
+  // Extras comuns (criaturas que aparecem muito em decks Commander)
+  Ape:"Macaco",Archer:"Arqueiro",Bard:"Bardo",Basilisk:"Basilisco",
+  Bear:"Urso",Boar:"Javali",Centaur:"Centauro",Chimera:"Quimera",Crab:"Caranguejo",
+  Crocodile:"Crocodilo",Cyclops:"Ciclope",Dinosaur:"Dinossauro",Dwarf:"Anão",
+  Eagle:"Águia",Elephant:"Elefante",Frog:"Sapo",Fungus:"Fungo",Gargoyle:"Gárgula",
+  Golem:"Golem",Gorgon:"Górgona",Griffin:"Grifo",Harpy:"Harpia",Hippogriff:"Hipogrifo",
+  Horse:"Cavalo",Hound:"Cão de caça",Hydra:"Hidra",Insect:"Inseto",Kraken:"Kraken",
+  Leviathan:"Leviatã",Lizard:"Lagarto",Manticore:"Manticora",Minotaur:"Minotauro",
+  Monkey:"Macaco",Mosquito:"Mosquito",Octopus:"Polvo",Orc:"Orc",
+  Ox:"Boi",Pegasus:"Pégaso",Phoenix:"Fênix",Pirate:"Pirata",Plant:"Planta",
+  Rabbit:"Coelho",Rat:"Rato",Rhino:"Rinoceronte",Salamander:"Salamandra",Satyr:"Sátiro",
+  Scorpion:"Escorpião",Scout:"Batedor",Siren:"Sereia",Skeleton:"Esqueleto",Spider:"Aranha",
+  Squid:"Lula",Squirrel:"Esquilo",Tiger:"Tigre",Turtle:"Tartaruga",Unicorn:"Unicórnio",
+  Wall:"Muralha",Whale:"Baleia",Wurm:"Verme"
+};
+for(const[k,v]of Object.entries(PT_CREATURE_TYPES)){
+  GLOSSARY_RAW.push([new RegExp("\\b"+k+"\\b","gi"),v]);
+}
+// Passa único (alternância ordenada por tamanho): o match mais longo vence e
+// nenhum termo pode ser re-combinado dentro da própria substituição.
+const GLOSSARY_LIST=GLOSSARY_RAW
+  .map(([re,pt])=>({re,pt,test:new RegExp(re.source,re.flags.replace(/g/g,""))}))
+  .sort((a,b)=>b.re.source.length-a.re.source.length);
+const GLOSSARY_RE=new RegExp(GLOSSARY_LIST.map(g=>g.re.source).join("|"),"gi");
+function protectGlossary(text){
+  const toks=[];
+  const replaced=text.replace(GLOSSARY_RE,m=>{
+    const hit=GLOSSARY_LIST.find(x=>x.test.test(m));
+    const pt=hit?hit.pt:"";
+    const term=(m[0]===m[0].toUpperCase())?(pt.charAt(0).toUpperCase()+pt.slice(1)):pt;
+    toks.push(term);
+    const n=toks.length;
+    return"<km"+n+">"+term+"</km"+n+">";
+  });
+  return{text:replaced,toks};
+}
+function restoreGlossary(text,toks){
+  return text.replace(/<km(\d+)>[^<]*<\/km\d+>/g,(m,i)=>toks[Number(i)-1]||m);
+}
+
+// --- Tradução determinística do type line (não depende do provedor) ---
+// "Basic Land — Island" -> "Terreno Básico — Ilha"; "Legendary Creature — Human Wizard"
+// -> "Criatura Lendária — Humano Mago". Ordem PT: tipos primeiro, supertipo depois.
+const PT_SUPERTYPES={Basic:1,Legendary:1,Snow:1,World:1};
+const PT_CARD_TYPES={
+  Artifact:"Artefato",Battle:"Batalha",Conspiracy:"Conspiração",Creature:"Criatura",
+  Dungeon:"Masmorra",Enchantment:"Encantamento",Instant:"Mágica Instantânea",
+  Kindred:"Tribal",Land:"Terreno",Phenomenon:"Fenômeno",Plane:"Plano",
+  Planeswalker:"Planeswalker",Scheme:"Esquema",Sorcery:"Feitiço",
+  Tribal:"Tribal",Vanguard:"Vanguarda"
+};
+const PT_OTHER_SUBTYPES={
+  Adventure:"Aventura",Aura:"Aura",Blood:"Sangue",Cartouche:"Cartucho",Case:"Caso",
+  Class:"Classe",Clue:"Pista",Contraption:"Engenhoca",Curse:"Maldição",Equipment:"Equipamento",
+  Food:"Comida",Forest:"Floresta",Fortification:"Fortificação",Island:"Ilha",Mountain:"Montanha",
+  Plains:"Planície",Role:"Papel",Rune:"Runa",Saga:"Saga",Shrine:"Santuário",Siege:"Cerco",Swamp:"Pântano",
+  Trap:"Armadilha",Treasure:"Tesouro",Vehicle:"Veículo",Wastes:"Desolamento",
+  // Extras comuns de subtipo não-criatura
+  Attraction:"Atração",Battle:"Batalha",Background:"Fundo",City:"Cidade",Desert:"Deserto",
+  Egg:"Ovo",Gate:"Portão",Lair:"Toca",Locus:"Lugar",Mine:"Mina","Power-Plant":"Usina de Energia",
+  Quarry:"Pedreira",Sphere:"Esfera","Urza's":"de Urza",University:"Universidade",Cave:"Caverna",
+  Tree:"Árvore",Hymn:"Hino",Estate:"Propriedade",Land:"Terreno",
+  Forest:"Floresta",Island:"Ilha",Mountain:"Montanha",Plains:"Planície",Swamp:"Pântano"
+};
+const PT_FEM_TYPES=["Criatura","Mágica Instantânea","Batalha","Conspiração"];
+function typeSupered(type,supertype){
+  if(supertype==="Snow")return"de Neve";
+  if(supertype==="World")return"Mundial";
+  if(supertype==="Legendary")return PT_FEM_TYPES.includes(type)?"Lendária":"Lendário";
+  return supertype==="Basic"?"Básico":"";
+}
+function translateTypePart(part){
+  const dash=part.indexOf("—");
+  const before=dash>=0?part.slice(0,dash).trim():part.trim();
+  const after=dash>=0?part.slice(dash+1).trim():"";
+  const toks=before?before.split(/\s+/).filter(Boolean):[];
+  const types=[],sups=[];
+  for(const t of toks){
+    if(PT_SUPERTYPES[t])sups.push(t);
+    else if(PT_CARD_TYPES[t])types.push(t);
+  }
+  if(!types.length||types.length+sups.length!==toks.length)return part; // token desconhecido -> provedor decide
+  const ptTypes=types.map(t=>PT_CARD_TYPES[t]);
+  const lastType=ptTypes[ptTypes.length-1];
+  const adj=sups.map(s=>typeSupered(lastType,s)).filter(Boolean).join(" ");
+  let out=ptTypes.join(" ")+(adj?" "+adj:"");
+  if(after){
+    const subs=after.split(/\s+/).filter(Boolean).map(t=>PT_OTHER_SUBTYPES[t]||PT_CREATURE_TYPES[t]||t).join(" ");
+    out+=" — "+subs;
+  }
+  return out;
+}
+function translateTypeLine(tl){
+  if(!tl)return"";
+  return tl.split(" // ").map(translateTypePart).filter(Boolean).join(" // ");
+}
+
+// --- Dicionário pós-tradução (correções seguras de frases que os provedores erram) ---
+// Aplicado sobre o texto PT final; entradas só de alta confiança (canônicas do PT-BR).
+const FIXUP_PT=[
+  [/\bum ficha\b/gi,"uma ficha"],
+  [/\bo ficha\b/gi,"a ficha"],
+  [/\bcrie um token\b/gi,"crie uma ficha"],
+  [/\bcrie dois token\b/gi,"crie duas fichas"],
+  [/\bcrie um ficha\b/gi,"crie uma ficha"],
+  [/\bfichas token\b/gi,"fichas"],
+  [/\bem jogo\b/gi,"em campo de batalha"],
+  [/\bcusto de mana convertido\b/gi,"valor de mana"],
+  [/\bdescomprima\b/gi,"desgire"]
+];
+function fixupPt(text){
+  for(const[re,pt]of FIXUP_PT)text=text.replace(re,pt);
+  return text;
+}
+
+// --- Provedores de tradução (tentados em ordem; se um falhar/limitar, cai pro próximo) ---
+let lastProvider="";
+async function tryGtx(text){
+  const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=${encodeURIComponent(text)}`;
+  const j=await fetchJson(url,2);
+  if(!j||!Array.isArray(j[0]))throw new Error("Google: resposta inválida");
+  let out="";
+  for(const seg of j[0]){if(seg&&seg[0])out+=seg[0]}
+  if(!out.trim())throw new Error("Google: tradução vazia");
+  return out;
+}
+async function tryMyMemory(text){
+  const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|pt-BR`;
+  const j=await fetchJson(url,2);
+  const t=j&&j.responseData&&j.responseData.translatedText;
+  if(!t)throw new Error("MyMemory: resposta inválida");
+  if(/MYMEMORY WARNING|QUOTA/i.test(t))throw new Error("MyMemory: limite diário atingido");
+  return t;
+}
+async function tryGtxAlt(text){
+  // Segunda via do Google (endpoint "dict-chrome-ex"), usado como último recurso.
+  const url=`https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=pt&q=${encodeURIComponent(text)}`;
+  const j=await fetchJson(url,2);
+  if(!j||!Array.isArray(j[0]))throw new Error("Google: resposta inválida");
+  let out="";
+  for(const seg of j[0]){if(seg&&seg[0])out+=seg[0]}
+  if(!out.trim())throw new Error("Google: tradução vazia");
+  return out;
+}
+const PROVIDERS=[["Google",tryGtx],["MyMemory",tryMyMemory],["Google (2ª via)",tryGtxAlt]];
+async function translateText(text){
+  if(!text||!text.trim())return"";
+  let lastErr=new Error("Nenhum provedor de tradução disponível");
+  for(const[pname,fn]of PROVIDERS){
+    try{
+      const r=await fn(text);
+      lastProvider=pname;
+      return r;
+    }catch(e){lastErr=e;await sleep(200)}
+  }
+  throw lastErr;
+}
+
+// --- Traduz um trecho protegendo mana + glossário oficial ---
+// Limpa pontuação/espaços que os tradutores costumam bagunçar ao redor dos símbolos
+function cleanupPt(text){
+  if(text==null)return"";
+  return text
+    .replace(/\s+/g," ")
+    .replace(/\{([^}]+)\}\s*:/g,"{$1}:")           // "{U} :" -> "{U}:"
+    .replace(/(\S)\s*([,.;!?])/g,"$1$2")           // remove espaço antes de pontuação
+    .replace(/([;,.!?])\s+/g,"$1 ")                // espaço único após pontuação
+    .replace(/(\{[^}]+\})\s+(\S)/g,"$1 $2")        // espaço único após símbolo de mana
+    .replace(/(\s+)/g," ")
+    .trim();
+}
+// Tradução "crua": protege mana+glossário, traduz e restaura, MAS preserva "\n"
+// (o cleanup/compressão fica por conta do chamador — necessário para batching).
+async function translateRaw(text){
+  const g=protectGlossary(text);
+  const m=protectMana(g.text);
+  const tr=await translateText(m.text);
+  return restoreGlossary(restoreMana(tr,m.toks),g.toks);
+}
+async function translateProtected(text){
+  return fixupPt(cleanupPt(await translateRaw(text)));
+}
+async function translateOne(text){
+  if(!text)return"";
+  return translateProtected(text);
+}
+// Traduz vários trechos numa única chamada (separador "\n"). Retorna array se a
+// separação viera íntegra; retorna null se o provedor fundir/alterar linhas (fallback individual).
+async function translateChunk(texts){
+  if(!texts||!texts.length)return[];
+  try{
+    const out=(await translateRaw(texts.join("\n"))).split("\n").map(x=>fixupPt(cleanupPt(x.trim())));
+    return out.length===texts.length?out:null;
+  }catch(e){return null}
+}
+async function translateRules(rules){
+  if(!rules)return"";
+  const paragraphs=rules.split(/\n\s*\n/).map(p=>p.replace(/\n/g," ").trim());
+  const out=[];
+  let i=0;
+  while(i<paragraphs.length){
+    if(!paragraphs[i]){out.push("");i++;continue}
+    const batch=[];
+    let j=i;
+    while(j<paragraphs.length&&batch.length<3){
+      if(paragraphs[j])batch.push(paragraphs[j]);
+      j++;
+    }
+    const res=await translateChunk(batch);
+    if(res)out.push(...res);
+    else for(const t of batch)out.push(await translateOne(t));
+    i=j;
+    if(i<paragraphs.length)await sleep(150);
+  }
+  return out.join("\n\n");
+}
+// Type line determinístico quando mapeável (senão null -> provedor cuida)
+function autoTypeLine(tl){
+  const mapped=translateTypeLine(tl);
+  return mapped&&mapped!==tl?mapped:null;
+}
+async function getAuto(name,en){
+  const ck=autoKey(name);
+  const cached=getUsableAutoCache(name,en);
+  if(cached)return cached;
+  try{localStorage.removeItem(ck)}catch(_){}
+  const f=faceData(en);
+  // Terreno básico (texto-lembrete padrão): resolve tudo localmente, sem rede.
+  const localRules=localReminderText(f.rules);
+  const localType=autoTypeLine(f.type);
+  if(localRules&&localType){
+    let lname=f.name;
+    try{lname=await translateOne(f.name||"")||f.name}catch(_){lname=f.name}
+    const tl={name:lname,type:localType,rules:localRules,flavor:"",provider:"glossário local"};
+    try{localStorage.setItem(ck,JSON.stringify(tl))}catch(_){}
+    return tl;
+  }
+  const mappedType=autoTypeLine(f.type);
+  let tName=f.name,tType=mappedType||f.type;
+  if(mappedType){
+    tName=await translateOne(f.name||"");
+  }else{
+    // Nome + type numa única chamada (menos requests/provedores); fallback individual
+    const nt=await translateChunk([f.name||"",f.type||""]);
+    if(nt){
+      tName=nt[0];tType=nt[1];
+    }else{
+      tName=await translateOne(f.name||"");await sleep(120);
+      tType=await translateOne(f.type||"");
+    }
+  }
+  await sleep(80);
+  const tRules=await translateRules(f.rules);
+  const tFlavor=f.flavor?await translateOne(f.flavor):"";
+  const t={name:tName||f.name,type:tType||f.type,rules:tRules||f.rules,flavor:tFlavor||"",provider:lastProvider||"automática"};
+  try{localStorage.setItem(ck,JSON.stringify(t))}catch(_){}
+  return t;
+}
+
+// ===== Render helpers =====
+let SYM=null;
+async function symbology(force){
+  if(SYM&&!force)return SYM;
+  if(!force){try{const s=localStorage.getItem("deckpt_symb_v1");if(s){SYM=JSON.parse(s);return SYM}}catch(e){}}
+  try{
+    const j=await fetchJson("https://api.scryfall.com/symbology");
+    const m={};(j.data||[]).forEach(x=>{m[x.symbol]=x.svg_uri});SYM=m;
+    try{localStorage.setItem("deckpt_symb_v1",JSON.stringify(m))}catch(e){}
+  }catch(e){SYM=SYM||{}}
+  return SYM;
+}
+function symHtml(tok){
+  let u=SYM&&SYM[tok];
+  if(!u)u="https://svgs.scryfall.com/card-symbols/"+encodeURIComponent(tok.replace(/\{|\}/g,""))+".svg";
+  return`<img class="ms" src="${u}" alt="${tok}">`;
+}
+function manaToHtml(str){if(!str)return"";return (str.match(/\{[^}]*\}/g)||[]).map(symHtml).join("")}
+const MANA_HEX={W:"#e9dfbf",U:"#2f8fd6",B:"#6b5f86",R:"#e6432c",G:"#2fa855"};
+const MANA_ORDER=Object.keys(MANA_HEX);
+// simbolos de mana embutidos no proprio HTML (sem depender de rede)
+const MANA_SVG={
+W:'<svg viewBox="0 0 40 40" class="ms" role="img" aria-label="Branco" focusable="false"><title>Branco</title><circle cx="20" cy="20" r="16" fill="#f8f5e9" stroke="#141414" stroke-width="2.2"/><g stroke="#141414" stroke-width="2.3" stroke-linecap="round"><line x1="20" y1="7" x2="20" y2="12.5"/><line x1="20" y1="27.5" x2="20" y2="33"/><line x1="7" y1="20" x2="12.5" y2="20"/><line x1="27.5" y1="20" x2="33" y2="20"/><line x1="10.8" y1="10.8" x2="14.5" y2="14.5"/><line x1="25.5" y1="25.5" x2="29.2" y2="29.2"/><line x1="29.2" y1="10.8" x2="25.5" y2="14.5"/><line x1="14.5" y1="25.5" x2="10.8" y2="29.2"/></g><circle cx="20" cy="20" r="3.2" fill="#141414"/></svg>',
+U:'<svg viewBox="0 0 40 40" class="ms" role="img" aria-label="Azul" focusable="false"><title>Azul</title><path d="M20 4c0 0 12.6 13.6 12.6 20.7a12.6 12.6 0 0 1-25.2 0C7.4 17.6 20 4 20 4Z" fill="#2f8fd6" stroke="#0a2233" stroke-width="1.8"/></svg>',
+B:'<svg viewBox="0 0 40 40" class="ms" role="img" aria-label="Preto" focusable="false"><title>Preto</title><path d="M20 4.6 34.2 30.4c.9 1.7-.4 3.6-2.2 3.6H8c-1.8 0-3.1-1.9-2.2-3.6Z" fill="#6b5f86" stroke="#1b1726" stroke-width="1.8"/></svg>',
+R:'<svg viewBox="0 0 40 40" class="ms" role="img" aria-label="Vermelho" focusable="false"><title>Vermelho</title><path d="M15 4c5 6 8.2 9.4 8.2 13.8 0 1.8-.7 3.3-1.8 4.4.3-3.2-1.6-6-4.3-7.8.3 4-1.3 6.1-3.4 8.4-1.5 1.7-2.4 3.2-2.4 5.2a9.6 9.6 0 0 0 19.2 0C31.2 18 22 12.8 15 4Z" transform="matrix(1.3 0 0 1 -7 0)" fill="#e6432c" stroke="#3b0d05" stroke-width="1.5"/></svg>',
+G:'<svg viewBox="0 0 40 40" class="ms" role="img" aria-label="Verde" focusable="false"><title>Verde</title><path d="M20 5.4c6.4 0 11.5 5.1 11.5 11.4 0 5.2-3.5 9.5-8.5 10.8v6.1h6.3v2.5H10.7v-2.5H17v-6.1c-5-1.3-8.5-5.6-8.5-10.8C8.5 10.5 13.6 5.4 20 5.4Z" fill="#2fa855" stroke="#0b2a16" stroke-width="1.8"/></svg>'
+};
+function identityOf(c){
+  if(!c)return [];
+  return (c.color_identity&&c.color_identity.length?c.color_identity:(c.colors||[]))||[];
+}
+function colorStrip(c){
+  const arr=identityOf(c);
+  const cols=MANA_ORDER.filter(k=>arr.includes(k)).map(k=>MANA_HEX[k]);
+  if(!cols.length)return"#c9a24b"; // incolor/terreno → dourado
+  if(cols.length===1)return cols[0];
+  return `linear-gradient(90deg,${cols.join(",")})`;
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function textToHtml(str){
+  if(!str)return"";
+  return str.split(/\n\s*\n/).map(par=>"<p>"+esc(par).replace(/\n/g,"<br>").replace(/\{[^}]*\}/g,m=>symHtml(m))+"</p>").join("");
+}
+function getCardImage(c,large){
+  const pick=u=>large?(u.large||u.png||u.normal||u.art_crop||""):(u.art_crop||u.normal||u.large||u.png||"");
+  if(c.image_uris)return pick(c.image_uris);
+  if(c.card_faces)for(const f of c.card_faces){if(f.image_uris)return pick(f.image_uris)}
+  return "";
+}
+// Imagem para o PDF: prioriza a versão "normal" (menor que large) — nitidez
+// suficiente na célula do PDF com bem menos decode/memória. WebP (~60% menor
+// que PNG) com fallback automático para o PNG original via data-fb.
+function pdfImageSrc(c){
+  const pick=u=>u?(u.normal||u.large||u.art_crop||u.png||""):"";
+  if(c.image_uris)return pick(c.image_uris);
+  if(c.card_faces)for(const f of c.card_faces){if(f.image_uris)return pick(f.image_uris)}
+  return getCardImage(c,true)||"";
+}
+function webpSrc(u){
+  if(!u)return"";
+  const q=u.indexOf("?");
+  const base=q>=0?u.slice(0,q):u;
+  const query=q>=0?u.slice(q):"";
+  return base.replace(/\.(png|jpe?g)$/i,".webp")+query;
+}
+// Arte CENTRAL da carta (art_crop) para o PDF estilo proxy — prioriza recorte
+// da arte, caindo para a carta inteira quando não houver art_crop disponível.
+function pdfArtSrc(c){
+  const pick=u=>u?(u.art_crop||u.normal||u.large||u.png||""):"";
+  if(c.image_uris)return pick(c.image_uris);
+  if(c.card_faces)for(const f of c.card_faces){if(f.image_uris)return pick(f.image_uris)}
+  return pdfImageSrc(c)||"";
+}
+function faceData(c,printed){
+  const P=(f,k)=>{const v=printed&&f&&f["printed_"+k]!=null?f["printed_"+k]:f&&f[k]!=null?f[k]:"";return v==null?"":v};
+  const faces=c.card_faces&&c.card_faces.length?c.card_faces:[c];
+  const name=faces.map(f=>P(f,"name")).filter(Boolean).join(" // ");
+  const mana=faces.map(f=>P(f,"mana_cost")).filter(Boolean).join("  //  ");
+  const type=faces.map(f=>P(f,"type_line")).filter(Boolean).join(" // ");
+  const rules=faces.map(f=>{let t=printed&&f.printed_text!=null?f.printed_text:(f.oracle_text||f.printed_text||"");return t}).filter(Boolean).join("\n\n//\n\n");
+  const flavor=faces.map(f=>f.flavor_text||"").filter(Boolean).join("\n\n//\n\n");
+  const last=faces[faces.length-1];
+  const pw=P(last,"power"),to=P(last,"toughness"),lo=P(last,"loyalty");
+  const pt=(pw||to||lo)?(lo||(pw+(pw&&to?"/":"")+to)):"";
+  return {img:getCardImage(c),imgBig:getCardImage(c,true),name:name||c.name||"",mana,type,rules,flavor,pt};
+}
+function hasPrintedRules(c){
+  return hasRealText(faceData(c,true).rules||c.printed_text||"");
+}
+// Algumas impressões "oficiais PT" trazem o printed_text ainda em inglês
+// (ex.: terrenos básicos de edições especiais vêm com "({T}: Add {G}.)").
+// Para não "oficializar" texto em inglês, detectamos se o texto é português
+// de verdade e corrigimos o lembrete de terreno básico localmente.
+const PT_TEXT_MARK=/você|sua|em vez|em campo de batalha|entram em campo|sempre que|quando|até o final|no início|no final|excedê|adicione|compre|descarte|gire |desgire|exile |destrua|devolva|embaralhe|procure|criatura|terreno básico|ficha|mágica|feitiço|jogador|oponente|cemitério|biblioteca|manutenção|escolha|distribua|pague|gaste|gere|ganhe|ataca|bloqueia|previna|adicional|qualquer cor|permanente|não pode|exceto|um ou mais/i;
+const EN_TEXT_MARK=/\b(you|your|add|tap|untap|creature|create|battlefield|graveyard|library|target|opponent|player|this turn|instead|shuffle|search|draw|discard|prevent|gain|destroy|token|land|lands)\b/i;
+function ptRuleFix(rules){
+  if(!hasRealText(rules))return"";
+  let t=rules
+    .replace(/\(\{T\}:\s*Add\s*(\{[WUBRGC]\})\.?\s*\)/gi,"({T}: Adicione $1.)")
+    .replace(/\bAdd\b/gi,m=>m[0]===m[0].toUpperCase()?"Adicione":"adicione");
+  if(PT_TEXT_MARK.test(t)&&!EN_TEXT_MARK.test(t))return t;
+  if(EN_TEXT_MARK.test(t))return null; // texto misto ou só inglês → auto-tradução traduz tudo
+  return t;
+}
+// Regras PT oficiais de verdade (null se a impressão não tiver texto PT).
+function ptOfficialRules(pt){
+  if(!pt||pt.printed_name==null)return null;
+  const pf=faceData(pt,true);
+  const r=ptRuleFix(pf.rules);
+  return r&&hasRealText(r)?r:null;
+}
+// Type line: se a impressão PT não veio traduzida (Ex.: "Land"), usa o
+// tipo determinístico PT (autoTypeLine) em vez de deixar inglês.
+const EN_CARD_TYPE_RE=/\b(Land|Creature|Instant|Sorcery|Artifact|Enchantment|Planeswalker|Battle|Plane|Dungeon|Kindred|Tribal|Conspiracy|Basic|Legendary|Snow)\b/;
+function ptOrAutoType(pfType,enType){
+  if(pfType&&!EN_CARD_TYPE_RE.test(pfType))return pfType;
+  const auto=autoTypeLine(enType);
+  return auto||pfType||enType||"";
+}
+function cardMeta(c){return [c.set_name,c.collector_number].filter(Boolean).join(" · ")+(c.artist?" · "+c.artist:"")}
+function cardPanel(f,opt){
+  const meta=opt.meta||"",rar=opt.rar||"",badge=opt.badge||"",bcls=opt.bcls||"",note=opt.note||"",strip=opt.colors||"";
+  const rarLabel=rar?rar.charAt(0).toUpperCase()+rar.slice(1):"";
+  return `<div class="cview">
+${strip?`    <div class="c-strip" style="background:${strip}"></div>`:""}
+${badge?`    <span class="badge ${bcls}">${badge}</span>`:""}
+    <div class="c-art">${f.imgBig?`<img src="${f.imgBig}" alt="${esc(f.name)}" loading="lazy" onerror="onArtError(this)">`:`<div class="c-noart">Sem arte disponível</div>`}</div>
+    <div class="c-head"><div class="c-name">${esc(f.name)}</div>${f.mana?`<div class="c-mana">${manaToHtml(f.mana)}</div>`:""}</div>
+    ${f.type?`<div class="c-type">${esc(f.type)}</div>`:""}
+    <div class="c-rules">${textToHtml(f.rules)||esc("—")}${f.flavor?`<div class="c-flavor">${textToHtml(f.flavor)}</div>`:""}</div>
+${note?`    <div class="c-note">${note}</div>`:""}
+    <div class="c-foot"><div class="c-meta">${esc(meta)}${rarLabel?`<br><span class="r-col r-${rar}">${esc(rarLabel)}</span>`:""}</div>${f.pt?`<div class="m-pt">${esc(f.pt)}</div>`:""}</div>
+  </div>`;
+}
+// Substitui a imagem que não carregou por um placeholder com o nome da carta
+// (evita que o alt "Ilha"/"Island" apareça como linha duplicada no painel).
+function onArtError(img){
+  img.onerror=null;
+  const div=document.createElement("div");
+  div.className="c-noart c-imgfallback";
+  div.title="Imagem indisponível";
+  div.textContent=img.getAttribute("alt")||"";
+  img.parentNode.replaceChild(div,img);
+}
+// Fallback do PDF: se a imagem WebP falhar, tenta uma vez o PNG original
+// (data-fb) antes de renderizar o placeholder.
+function onArtErrorPdf(img){
+  const fb=img.getAttribute("data-fb");
+  if(fb&&img.src!==fb){img.src=fb;return}
+  onArtError(img);
+}
+
+// ===== Monta o painel PT (impressão oficial OU tradução automática) =====
+// Fonte única de verdade para selectCard, verifyTranslations e exportPdf.
+// Regra para impressão oficial textless (basic lands full-art, etc.): o Scryfall
+// informa printed_text só com símbolos ("U") ou vazio — então as REGRAS vêm da
+// tradução automática do texto EN (oracle), mantendo nome/tipo/edição oficiais.
+async function ptViewFor(name,entry){
+  const en=entry.en; if(!en)return null;
+  const f=faceData(en);
+  const rar=(en.rarity||"common").toLowerCase();
+  const colors=colorStrip(en);
+  const pt=entry.pt||null;
+  if(pt&&pt.printed_name!=null){
+    const pf=faceData(pt,true);
+    const meta=cardMeta(pt);
+    const pr=ptOfficialRules(pt);
+    if(pr){
+      return{f:{...pf,rules:pr,type:ptOrAutoType(pf.type,f.type)},opt:{meta,rar,badge:"Português · impressão oficial",bcls:"b-pt",colors}};
+    }
+    try{
+      const t=await getAuto(name,en);
+      return{f:{imgBig:pf.imgBig,name:pf.name,mana:pf.mana,type:ptOrAutoType(pf.type,f.type),rules:t.rules||pf.rules,flavor:t.flavor||pf.flavor,pt:pf.pt},
+             opt:{meta,rar,badge:"Português · impressão oficial",bcls:"b-pt",colors,
+                  note:"Impressão oficial sem regras em português — texto traduzido automaticamente."}};
+    }catch(e){
+      return{f:{...pf,type:ptOrAutoType(pf.type,f.type)},opt:{meta,rar,badge:"Português · impressão oficial",bcls:"b-pt",colors}};
+    }
+  }
+  const t=await getAuto(name,en);
+  return{f:{imgBig:f.imgBig,name:t.name,mana:f.mana,type:t.type,rules:t.rules,flavor:t.flavor,pt:f.pt},
+         opt:{meta:cardMeta(en),rar,badge:"Português · tradução automática",bcls:"b-auto",colors,
+              note:`Tradução automática (via ${esc(t.provider||"serviço externo")}) — palavras-chave oficiais (voar, atropelar, iniciativa etc.) são preservadas conforme o glossário de Magic em PT-BR; o restante do texto é traduzido automaticamente e pode conter imprecisões. Consulte o painel em inglês para as regras oficiais.`}};
+}
+
+// ===== Lista =====
+const nameIdx=new Map();
+let currentIdx=null;
+let langTab="en";
+function rowHtml(it,i){
+  return `<div class="lrow" data-idx="${i}" data-raw="${esc(it.name)}" data-hay="${esc(it.name.toLowerCase())}" role="button" tabindex="0">
+    <span class="qty">${it.qty}×</span><span class="nm">${esc(it.name)}</span><span class="st st-none">…</span>
+  </div>`;
+}
+function renderList(){
+  nameIdx.clear();
+  const lb=$("lbody");lb.innerHTML="";
+  state.items.forEach((it,i)=>{nameIdx.set(it.name.toLowerCase(),i);lb.insertAdjacentHTML("beforeend",rowHtml(it,i))});
+}
+function setRow(idx,cls,text){
+  const st=document.querySelector(`#lbody .lrow[data-idx="${idx}"] .st`);
+  if(st){st.textContent=text;st.className="st "+cls}
+}
+function markActive(idx){
+  document.querySelectorAll("#lbody .lrow").forEach(r=>r.classList.toggle("active",Number(r.dataset.idx)===idx));
+}
+function setStatus(msg,cls){const el=$("status");el.textContent=msg;el.className="status"+(cls?(" "+cls):"")}
+function updateListInfo(){
+  $("listInfo").textContent=`${state.items.reduce((s,x)=>s+x.qty,0)} cartas · ${state.items.length} nomes`;
+}
+async function prefetchAll(items){
+  for(let k=0;k<items.length;k++){
+    const it=items[k];
+    setRow(k,"st-none","…");
+    try{await getEntry(it.name);setRow(k,"st-ok","✓")}
+    catch(err){setRow(k,"st-err","✗");if(/não encontrada|não existe/i.test(err.message||""))showSuggestions(k,it.name)}
+    if(k<items.length-1)await sleep(130);
+  }
+}
+// "Você quis dizer?" — exibe nomes parecidos abaixo da linha da carta não encontrada.
+async function showSuggestions(idx,name){
+  const row=document.querySelector(`#lbody .lrow[data-idx="${idx}"]`);
+  if(!row||!row.parentNode)return;
+  let box=row.nextElementSibling;
+  if(box&&box.classList&&box.classList.contains("lrow-sug"))box.remove();
+  const sugs=await suggestCards(name);
+  if(!sugs.length)return;
+  box=document.createElement("div");
+  box.className="lrow-sug";
+  box.innerHTML=`<span class="sug-hint">Você quis dizer?</span>`+
+    sugs.map(s=>`<button type="button" class="sug-btn" data-name="${esc(s.name)}" title="${esc(s.set)}">${esc(s.name)}<span class="sug-set">${esc(s.set)}</span></button>`).join("");
+  box.addEventListener("click",ev=>{
+    const b=ev.target.closest(".sug-btn");
+    if(!b)return;
+    replaceCardName(Number(row.dataset.idx),b.getAttribute("data-name"));
+  });
+  row.parentNode.insertBefore(box,row.nextSibling);
+}
+// Troca o nome da carta na lista pela sugestão escolhida e re-traduz tudo de novo.
+async function replaceCardName(idx,newName){
+  const it=state.items[idx];
+  if(!it||!newName)return;
+  const oldName=it.name;
+  if(oldName.toLowerCase()===newName.toLowerCase())return;
+  it.name=newName;
+  nameIdx.delete(oldName.toLowerCase());nameIdx.set(newName.toLowerCase(),idx);
+  clearNfCache(oldName);clearNfCache(newName);
+  try{localStorage.removeItem(cacheKey(oldName))}catch(_){}
+  try{localStorage.removeItem(autoKey(oldName))}catch(_){}
+  const row=document.querySelector(`#lbody .lrow[data-idx="${idx}"]`);
+  if(row){
+    row.dataset.raw=newName;row.dataset.hay=newName.toLowerCase();
+    const nm=row.querySelector(".nm");if(nm)nm.textContent=newName;
+  }
+  // Remove o bloco de sugestões logo abaixo da linha (se houver)
+  if(row){const sib=row.nextElementSibling;if(sib&&sib.classList&&sib.classList.contains("lrow-sug"))sib.remove()}
+  setRow(idx,"st-none","…");
+  setStatus(`Corrigido para "${newName}". Buscando…`);
+  await selectCard(newName,idx);
+}
+
+// ===== Seleção (EN + PT) =====
+function isNarrow(){
+  try{return window.matchMedia("(max-width:1099px)").matches}catch(_){return false}
+}
+function scrollToResult(){
+  if(!isNarrow())return;
+  const target=langTab==="pt"?$("ptPanel"):$("enPanel");
+  const el=(target&&target.closest)?(target.closest(".view-panel")||target):target;
+  if(!el||!el.scrollIntoView)return;
+  try{el.scrollIntoView({behavior:"smooth",block:"start"})}catch(_){el.scrollIntoView()}
+}
+async function selectCard(name,idx){
+  if(state.busy)return;
+  state.selected=name;
+  currentIdx=idx;
+  markActive(idx);
+  const enPanel=$("enPanel"),ptPanel=$("ptPanel");
+  enPanel.innerHTML=`<div class="loading">Carregando ${esc(name)}…</div>`;
+  ptPanel.innerHTML=`<div class="loading">Aguardando…</div>`;
+  // Em telas estreitas os painéis ficam empilhados abaixo da lista: sem isto,
+  // tocar numa carta no celular parece "não fazer nada".
+  scrollToResult();
+  // 1) Carrega a carta em inglês — se isto falhar, não há como seguir (nem carta, nem tradução)
+  let entry,en,f,rar;
+  try{
+    entry=await getEntry(name);
+    en=entry.en;
+    f=faceData(en);
+    rar=(en.rarity||"common").toLowerCase();
+    setRow(idx,"st-ok","✓");
+    enPanel.innerHTML=cardPanel(f,{meta:cardMeta(en),rar,badge:"Inglês · original",bcls:"b-en",colors:colorStrip(en)});
+  }catch(err){
+    const nf=/não encontrada|não existe/i.test(err.message||"");
+    enPanel.innerHTML=`<div class="loading err">${esc(err.message)}</div>`;
+    ptPanel.innerHTML="";
+    setRow(idx,"st-err","✗");
+    if(nf)showSuggestions(idx,name);
+    return;
+  }
+
+  // 2) Busca impressão PT oficial. Se não encontrar (ou der erro na busca), cai para tradução automática.
+  let pt=entry.pt||null;
+  if(!pt){
+    ptPanel.innerHTML=`<div class="loading">Buscando impressão PT oficial…</div>`;
+    pt=await fetchPtPrint(name,en); // tenta oracle_id primeiro; depois nome PT
+    entry.pt=pt;
+    try{localStorage.setItem(cacheKey(name),JSON.stringify(entry))}catch(_){}
+  }
+  if(pt&&pt.printed_name!=null){
+    setRow(idx,"st-pt","PT ✓");
+    try{
+      const v=await ptViewFor(name,entry);
+      ptPanel.innerHTML=cardPanel(v.f,v.opt);
+    }catch(e){
+      const pf=faceData(pt,true);
+      ptPanel.innerHTML=cardPanel(pf,{meta:cardMeta(pt),rar,badge:"Português · impressão oficial",bcls:"b-pt",colors:colorStrip(en)});
+    }
+    return;
+  }
+
+  // 3) Sem impressão PT oficial → tradução automática (isolada: erro aqui não apaga o painel EN)
+  ptPanel.innerHTML=`<div class="loading">Sem impressão PT oficial.<br>Traduzindo automaticamente…</div>`;
+  try{
+    const t=await getAuto(name,en);
+    setRow(idx,"st-auto","⚡");
+    ptPanel.innerHTML=cardPanel(
+      {imgBig:f.imgBig,name:t.name,mana:f.mana,type:t.type,rules:t.rules,flavor:t.flavor,pt:f.pt},
+      {meta:cardMeta(en),rar,badge:"Português · tradução automática",bcls:"b-auto",colors:colorStrip(en),
+       note:`Tradução automática (via ${esc(t.provider||"serviço externo")}) — palavras-chave oficiais (voar, atropelar, iniciativa etc.) são preservadas conforme o glossário de Magic em PT-BR; o restante do texto é traduzido automaticamente e pode conter imprecisões. Consulte o painel em inglês para as regras oficiais.`});
+  }catch(errAuto){
+    setRow(idx,"st-err","⚠");
+    ptPanel.innerHTML=`<div class="loading err">Falha na tradução automática: ${esc(errAuto.message)}<br>
+      <button type="button" class="ghost" style="margin-top:10px" onclick="selectCardByName(${JSON.stringify(name)})">Tentar de novo</button></div>`;
+  }
+}
+
+// ===== Verificar Tradução (força auto-tradução para cartas sem PT) =====
+async function verifyTranslations(){
+  if(state.busy||!state.selected)return;
+  const name=state.selected;
+  const idx=nameIdx.get(name.toLowerCase());
+  if(idx==null)return;
+  state.busy=true;$("verifyBtn").disabled=true;$("savePdfBtn").disabled=true;
+  const enPanel=$("enPanel"),ptPanel=$("ptPanel");
+  setStatus("Re-verificando tradução da carta selecionada…");
+  // Força re-fetch da carta EN
+  let entry;
+  try{
+    entry=await getEntry(name,true);
+  }catch(err){
+    setStatus("Erro ao buscar carta: "+err.message,"err");
+    state.busy=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;
+    return;
+  }
+  // Atualiza painel EN
+  const en=entry.en;
+  const f=faceData(en);
+  const rar=(en.rarity||"common").toLowerCase();
+  setRow(idx,"st-ok","✓");
+  enPanel.innerHTML=cardPanel(f,{meta:cardMeta(en),rar,badge:"Inglês · original",bcls:"b-en",colors:colorStrip(en)});
+  // Limpa cache de impressão PT para forçar nova busca
+  entry.pt=null;
+  try{localStorage.setItem(cacheKey(name),JSON.stringify(entry))}catch(_){}
+  // 1) Tenta impressão PT oficial
+  ptPanel.innerHTML=`<div class="loading">Re-buscando impressão PT oficial…</div>`;
+  let pt=await fetchPtPrint(name,en);
+  entry.pt=pt;
+  try{localStorage.setItem(cacheKey(name),JSON.stringify(entry))}catch(_){}
+  if(pt&&pt.printed_name!=null){
+    setRow(idx,"st-pt","PT ✓");
+    const v=await ptViewFor(name,entry);
+    ptPanel.innerHTML=cardPanel(v.f,v.opt);
+    setStatus("Impressão PT oficial encontrada!","ok");
+    state.busy=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;
+    return;
+  }
+  // 2) Sem impressão PT → limpa auto-cache e traduz de novo
+  localStorage.removeItem(autoKey(name));
+  ptPanel.innerHTML=`<div class="loading">Sem impressão PT oficial.<br>Traduzindo via web…</div>`;
+  try{
+    const t=await getAuto(name,en);
+    setRow(idx,"st-auto","⚡");
+    ptPanel.innerHTML=cardPanel(
+      {imgBig:f.imgBig,name:t.name,mana:f.mana,type:t.type,rules:t.rules,flavor:t.flavor,pt:f.pt},
+      {meta:cardMeta(en),rar,badge:"Português · tradução automática",bcls:"b-auto",colors:colorStrip(en),
+       note:`Re-traduzido via ${esc(t.provider||"serviço externo")} — palavras-chave oficiais preservadas; texto restante é tradução automática.`});
+    setStatus("Tradução atualizada!","ok");
+  }catch(errAuto){
+    setRow(idx,"st-err","⚠");
+    ptPanel.innerHTML=`<div class="loading err">Falha na tradução: ${esc(errAuto.message)}<br>
+      <button type="button" class="ghost" style="margin-top:10px" onclick="verifyTranslations()">Tentar de novo</button></div>`;
+    setStatus("Erro na tradução: "+errAuto.message,"err");
+  }
+  state.busy=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;
+}
+
+// ===== Traduzir cartas pendentes (deck inteiro, cache-first, pool de 4 em paralelo) =====
+// Nunca toca em impressão PT oficial que já exista no cache; trata textless e
+// pendentes de auto-tradução. Escreve no próprio snake cx via setRow.
+function getUsableAutoCache(name,en){
+  try{
+    const s=localStorage.getItem(autoKey(name));if(!s)return null;
+    const t=JSON.parse(s);if(!t||t.provider==="fallback offline")return null;
+    const f=faceData(en);
+    if(hasRealText(f.rules)&&(t.rules||"").trim()&&(t.rules||"").trim()!==f.rules.trim())return t;
+    if(!hasRealText(f.rules)&&(t.name||t.type))return t;
+  }catch(_){}
+  return null;
+}
+function cachedOrLocal(name,en,f){
+  const ready=getUsableAutoCache(name,en);
+  if(ready)return{cache:ready,missing:false};
+  const type=autoTypeLine(f.type);
+  return{cache:{name:f.name,type:type?type:f.type,rules:localReminderText(f.rules)||f.rules||"",flavor:f.flavor||"",provider:"fallback offline"},missing:true};
+}
+function autoTypeLineFor(f){ // linha de tipo com fallback automático PT
+  const line=autoTypeLine(f.type);
+  return line?line:f.type;
+}
+function ptViewCached(name,entry){
+  const en=entry&&entry.en;if(!en)return null;
+  const f=faceData(en);
+  const rar=(en.rarity||"common").toLowerCase();
+  const pt=entry.pt||null;
+  if(pt&&pt.printed_name!=null){
+    const pf=faceData(pt,true);
+    const pr=ptOfficialRules(pt);
+    if(pr){
+      return{f:{...pf,rules:pr,type:ptOrAutoType(pf.type,f.type)},opt:{meta:cardMeta(pt),rar,badge:"Português · impressão oficial",bcls:"b-pt"},missing:false};
+    }
+    const cl=cachedOrLocal(name,en,pf);
+    return{f:{imgBig:pf.imgBig,name:cl.cache.name||pf.name,mana:pf.mana,type:ptOrAutoType(cl.cache.type||pf.type,f.type),rules:cl.cache.rules||"",flavor:cl.cache.flavor||pf.flavor,pt:pf.pt},
+           opt:{meta:cardMeta(pt),rar,badge:"Português · impressão oficial",bcls:"b-pt"},missing:cl.missing};
+  }
+  const cl=cachedOrLocal(name,en,f);
+  return{f:{imgBig:f.imgBig,name:cl.cache.name||f.name,mana:f.mana,type:cl.cache.type||f.type,rules:cl.cache.rules||f.rules,flavor:cl.cache.flavor||f.flavor,pt:f.pt},
+         opt:{meta:cardMeta(en),rar,badge:"Português · tradução automática",bcls:"b-auto"},missing:cl.missing};
+}
+function isGoodPdfTranslation(en,t){
+  if(!t)return false;
+  const f=faceData(en);
+  if(hasRealText(f.rules)){
+    const src=(f.rules||"").trim();
+    const out=(t.rules||"").trim();
+    if(!hasRealText(out)||out===src)return false;
+  }
+  return true;
+}
+async function buildPdfCardFromEnglish(it){
+  let entry=null;
+  try{const s=localStorage.getItem(cacheKey(it.name));if(s)entry=JSON.parse(s)}catch(_){}
+  if(!entry||!entry.en){
+    try{entry=await getEntry(it.name,true)}
+    catch(err){
+      // Só gera proxy quando o Scryfall confirmou que a carta NÃO existe (404 em
+      // toda a escada EN+PT). Erro transitório (rede/rate-limit) é relançado:
+      // gerar proxy aqui passaria imagem errada de "carta não encontrada".
+      if(!/não encontrada|não existe/i.test(err.message||""))throw err;
+      let tName=it.name;
+      try{tName=(await translateOne(it.name))||it.name}catch(_){}
+      return{
+        qty:it.qty,
+        name:it.name,
+        ptName:tName,
+        ptType:"Carta não encontrada",
+        ptRules:"Esta carta não foi localizada no banco do Scryfall (o nome pode estar incorreto ou é de outro jogo). Use os nomes sugeridos na lista para corrigir.",
+        imgSrc:"",
+        pingSrc:"",
+        source:"nf-fallback",
+        failReason:(err&&err.message)||""
+      };
+    }
+  }
+  const en=entry.en;
+  const f=faceData(en);
+  // Só busca impressão PT se ainda não tiver uma em cache (evita request redundante por carta)
+  let pt=entry.pt||null;
+  if(!pt){
+    try{pt=await fetchPtPrint(it.name,en)}catch(_){pt=null}
+    entry.pt=pt;
+    try{localStorage.setItem(cacheKey(it.name),JSON.stringify(entry))}catch(_){}
+  }
+  const ptOff=(pt&&pt.printed_name!=null)?ptOfficialRules(pt):null;
+  if((pt&&pt.printed_name!=null)&&(ptOff||!hasRealText(f.rules))){
+    const pf=faceData(pt,true);
+    return{
+      qty:it.qty,
+      name:it.name,
+      ptName:pf.name||f.name,
+      ptType:ptOrAutoType(pf.type,f.type),
+      ptRules:ptOff||"",
+      imgSrc:webpSrc(pdfArtSrc(en))||"",
+      pingSrc:pdfImageSrc(en)||"",
+      source:"pt-oficial"
+    };
+  }
+  // Tradução automática: aproveita o cache (não é mais apagado a cada exportação) e,
+  // se vier ruim/incompleta, tenta de novo do zero com espera crescente — as falhas
+  // costumavam ser só limite de requisição momentâneo dos serviços de tradução.
+  // Se existir impressão PT (mesmo sem texto), o nome/tipo oficiais dela têm prioridade.
+  const ptFace=(pt&&pt.printed_name!=null)?faceData(pt,true):null;
+  let t=null,lastErr=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      if(attempt>0){
+        try{localStorage.removeItem(autoKey(it.name))}catch(_){}
+        await sleep(700*attempt);
+      }
+      t=await getAuto(it.name,en);
+      if(isGoodPdfTranslation(en,t))break;
+      lastErr=new Error("tradução incompleta");
+      t=null;
+    }catch(e){lastErr=e;t=null}
+  }
+  if(!t){
+    // Última linha de defesa: em vez de cancelar o PDF inteiro por causa de uma carta,
+    // usa o tipo traduzido offline + o texto disponível, e sinaliza no retorno.
+    const cl=cachedOrLocal(it.name,en,f);
+    return{
+      qty:it.qty,
+      name:it.name,
+      ptName:(ptFace&&ptFace.name)||cl.cache.name||f.name,
+      ptType:ptOrAutoType(ptFace&&ptFace.type,f.type)||cl.cache.type||autoTypeLineFor(f),
+      ptRules:cl.cache.rules||f.rules||"",
+      imgSrc:webpSrc(pdfArtSrc(en))||"",
+      pingSrc:pdfImageSrc(en)||"",
+      source:"falhou",
+      failReason:(lastErr&&lastErr.message)||"tradução indisponível"
+    };
+  }
+  return{
+    qty:it.qty,
+    name:it.name,
+    ptName:(ptFace&&ptFace.name)||t.name||f.name,
+    ptType:ptOrAutoType(ptFace&&ptFace.type,f.type)||t.type||autoTypeLineFor(f),
+    ptRules:t.rules||"",
+    imgSrc:webpSrc(pdfArtSrc(en))||"",
+      pingSrc:pdfImageSrc(en)||"",
+    source:t.provider||"automática"
+  };
+}
+function getPendingCount(){ // qtd de cartas que ainda falta traduzir (cache-first)
+  let n=0;
+  for(const it of state.items){
+    const idx=nameIdx.get(it.name.toLowerCase());
+    if(idx==null)continue;
+    try{
+      const s=localStorage.getItem(cacheKey(it.name));if(!s)continue;
+      const e=JSON.parse(s);if(!e||!e.en)continue;
+      const en=e.en,f=faceData(en);
+      const pt=e.pt||null;
+      if(ptOfficialRules(pt))continue;
+      const v=ptViewCached(it.name,e);
+      if(v&&v.missing)n++;
+    }catch(_){}
+  }
+  return n;
+}
+
+// ===== Estatísticas do deck (cores · tipos · curva) =====
+const COLORS={W:"Branco",U:"Azul",B:"Preto",R:"Vermelho",G:"Verde"};
+const COLORDER=["W","U","B","R","G"];
+const COLPAL={W:"#f6e6a7",U:"#7cc4ff",B:"#9b8bb8",R:"#ff8a5c",G:"#6fdd8b"};
+const TYPES_PAL={Criatura:"#ff8a5c",Terreno:"#6fdd8b",Instantânea:"#7cc4ff",Feitiço:"#c26bff",Artefato:"#ffd76a",Encantamento:"#ffb45c",Planeswalker:"#ff5c8a",Outro:"#8fa2c4"};
+function cmcOf(s){
+  let g=0,others=0;
+  for(const t of (s&&s.match(/\{[^}]*\}/g))||[]){
+    const inner=t.slice(1,-1).toUpperCase();
+    if(/^\d+$/.test(inner))g+=parseInt(inner,10);
+    else if(inner!=="X")others++;
+  }
+  return g+others;
+}
+function colorsOf(s){
+  const set=new Set();
+  for(const ch of (s||""))if(COLORS[ch])set.add(ch);
+  return [...set];
+}
+function typeOf(tl){
+  if(!tl)return"Outro";
+  if(/Land/.test(tl))return"Terreno";
+  if(/Creature/.test(tl))return"Criatura";
+  if(/Planeswalker/.test(tl))return"Planeswalker";
+  if(/Instant/.test(tl))return"Instantânea";
+  if(/Sorcery/.test(tl))return"Feitiço";
+  if(/Enchantment/.test(tl))return"Encantamento";
+  if(/Artifact/.test(tl))return"Artefato";
+  return"Outro";
+}
+function deckStatRows(){
+  const rows=[];
+  for(const it of state.items){
+    let entry=null;
+    try{const s=localStorage.getItem(cacheKey(it.name));if(s)entry=JSON.parse(s)}catch(_){}
+    if(!entry||!entry.en)continue;
+    const f=faceData(entry.en);
+    for(let i=0;i<it.qty;i++)
+      rows.push({cmc:cmcOf(f.mana),colors:colorsOf(f.mana),type:typeOf(f.type)});
+  }
+  return rows;
+}
+function statBarRow(label,count,max,color){
+  const pct=max?Math.round(count/max*100):0;
+  return `<div class="bar-row"><div class="bar-lb">${label}<span>${count}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+}
+function refreshStats(){
+  const chips=$("stChips"),cColors=$("stColors"),cTypes=$("stTypes"),cCurve=$("stCurve");
+  if(!chips||!cColors||!cTypes||!cCurve)return;
+  if(!state.items.length){
+    chips.innerHTML=`<div class="stats-empty">Carregue um deck primeiro.</div>`;
+    cColors.innerHTML=cTypes.innerHTML=cCurve.innerHTML="";
+    return;
+  }
+  const rows=deckStatRows();
+  const total=rows.length;
+  chips.innerHTML=`
+    <div class="chip">${state.items.length} nomes</div>
+    <div class="chip alt">${total} cartas</div>`;
+  // Cores (por cor presente no mana cost)
+  const colorCounts={};
+  rows.forEach(r=>r.colors.forEach(c=>{colorCounts[c]=(colorCounts[c]||0)+1}));
+  const colorChipsShort=COLORDER.map(c=>{const n=colorCounts[c]||0;return n?`<div class="chip" style="border-color:${COLPAL[c]}">${COLORS[c]} <b>${n}</b></div>`:""}).join("");
+  cColors.innerHTML=(COLORDER.map(c=>statBarRow(COLORS[c],colorCounts[c]||0,rows.length,COLPAL[c])).join(""))+
+    (colorChipsShort?`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${colorChipsShort}</div>`:
+      `<div class="stats-empty">Sem mana cost colorida (só artefatos/terrenos).</div>`);
+  // Tipos
+  const tCounts={};
+  rows.forEach(r=>{tCounts[r.type]=(tCounts[r.type]||0)+1});
+  const tMax=Math.max(1,...Object.values(tCounts));
+  cTypes.innerHTML=Object.entries(TYPES_PAL).map(([t,c])=>statBarRow(t,tCounts[t]||0,tMax,c)).join("");
+  // Curva (0..7+)
+  const cur=new Array(9).fill(0);
+  rows.forEach(r=>{const b=Math.min(7,r.cmc);cur[b]++});
+  const curMax=Math.max(1,...cur);
+  const labels=["0","1","2","3","4","5","6","7","7+"];
+  cCurve.innerHTML=labels.map((l,i)=>statBarRow(l,cur[i],curMax,"#7c93ff")).join("");
+}
+function openStats(){
+  refreshStats();
+  $("statsBox").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+function closeStats(){
+  $("statsBox").classList.add("hidden");
+  document.body.style.overflow="";
+}
+async function translatePendingAll(){
+  if(state.busy)return;
+  const unique=[...new Map(state.items.filter(it=>it.name).map(it=>[it.name,it])).values()];
+  if(!unique.length){setStatus("Carregue um deck primeiro.","warn");return}
+  state.busy=true;$("verifyBtn").disabled=true;$("savePdfBtn").disabled=true;$("translateAllBtn").disabled=true;$("reload").disabled=true;$("load").disabled=true;
+  // Overlay de progresso (paralelo)
+  const ov=document.createElement("div");ov.className="pdf-overlay";
+  ov.innerHTML=`<div class="pdf-progress"><div class="pdf-progress-label">Preparando traduções…</div><div class="pdf-progress-track"><div class="pdf-progress-fill"></div></div><div class="pdf-progress-pct">0%</div></div>`;
+  document.body.appendChild(ov);
+  const ovLabel=ov.querySelector(".pdf-progress-label"),ovFill=ov.querySelector(".pdf-progress-fill"),ovPct=ov.querySelector(".pdf-progress-pct");
+  const ovUpd=(label,pct)=>{ovLabel.textContent=label;const p=Math.max(0,Math.min(100,Math.round(pct)));ovFill.style.width=p+"%";ovPct.textContent=p+"%"};
+  let done=0,failed=0,skipped=0,failedNames=[];
+  // Pool de 4 em paralelo
+  const N=unique.length,CONC=Math.min(2,N);let next=0;
+  const setRowState=(name,ok)=>{
+    const n=nameIdx.get(name.toLowerCase());
+    if(n!=null)setRow(n,ok?"st-ok":"st-err",ok?"✓":"✗");
+  };
+  const worker=async()=>{
+    while(next<N){
+      const k=next++;const it=unique[k];
+      ovUpd(`Verificando ${k+1} de ${N}: ${it.name}…`,4+Math.round(k/N*12));
+      try{
+        let entry=null;
+        try{const s=localStorage.getItem(cacheKey(it.name));if(s)entry=JSON.parse(s)}catch(_){}
+        if(!entry||!entry.en){done++;setRowState(it.name,false);continue}
+        const en=entry.en,f=faceData(en);
+        const pt=entry.pt||null;
+        // Já tem impressão PT oficial com texto em português → conta como pronta
+        if(ptOfficialRules(pt)){skipped++;setRowState(it.name,true);continue}
+        // Tem auto-tradução em cache → pronta
+        if(getUsableAutoCache(it.name,en)){skipped++;setRowState(it.name,true);continue}
+        // Pendente: traduz agora
+        ovUpd(`Traduzindo ${k+1} de ${N}: ${it.name}…`,16+Math.round((k+1)/N*74));
+        try{
+          await getAuto(it.name,en);
+          done++;setRowState(it.name,true);
+        }catch(_){failed++;failedNames.push(it.name);setRowState(it.name,false)}
+      }catch(_){
+        done++;setRowState(it.name,false);failed++;failedNames.push(it.name);
+      }
+    }
+  };
+  try{
+    await Promise.all(Array.from({length:CONC},()=>worker()));
+    ovUpd("Concluído!",100);
+  }catch(_){ovUpd("Erro ao traduzir",100)}
+  document.body.removeChild(ov);
+  state.busy=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;$("translateAllBtn").disabled=false;$("reload").disabled=false;$("load").disabled=false;
+  if(failed){
+    const names=failedNames.slice(0,3).map(n=>`"${n}"`).join(", ")+(failedNames.length>3?"…":"");
+    setStatus(`${done} traduzidas, ${skipped} já prontas, ${failed} com falha (${esc(names)}).`,"err");
+  }else{
+    setStatus(`Tudo traduzido! (${done} agora, ${skipped} já estavam prontas).`,"ok");
+  }
+}
+
+// ===== Salvar Deck (PDF) =====
+async function exportPdf(){
+  if(state.busy)return;
+  if(!state.items.length){setStatus("Carregue um deck primeiro.","warn");return}
+  if(typeof html2canvas==="undefined"||typeof jspdf==="undefined"){
+    setStatus("Carregando a biblioteca de PDF…","warn");
+    for(let i=0;i<40&&(typeof html2canvas==="undefined"||typeof jspdf==="undefined");i++)await sleep(150);
+  }
+  if(typeof html2canvas==="undefined"||typeof jspdf==="undefined"){
+    setStatus("Falha ao carregar a biblioteca de PDF (bloqueada por firewall/adblock ou sem internet).","err");
+    return;
+  }
+  state.busy=true;$("verifyBtn").disabled=true;$("savePdfBtn").disabled=true;$("translateAllBtn").disabled=true;$("reload").disabled=true;$("load").disabled=true;
+  const unique=[...new Map(state.items.map(it=>[it.name,it])).values()];
+  const ov=document.createElement("div");ov.className="pdf-overlay";
+  ov.innerHTML=`<div class="pdf-progress"><div class="pdf-progress-label">Preparando deck…</div><div class="pdf-progress-track"><div class="pdf-progress-fill"></div></div><div class="pdf-progress-pct">0%</div></div>`;
+  document.body.appendChild(ov);
+  const ovLabel=ov.querySelector(".pdf-progress-label");
+  const ovFill=ov.querySelector(".pdf-progress-fill");
+  const ovPct=ov.querySelector(".pdf-progress-pct");
+  const ovUpd=(label,pct)=>{ovLabel.textContent=label;const p=Math.max(0,Math.min(100,Math.round(pct)));ovFill.style.width=p+"%";ovPct.textContent=p+"%"};
+  const container=$("pdfExport");
+  try{
+    const N=unique.length,CONC=Math.min(2,N);
+    let next=0,official=0,translated=0,failed=0,nfFb=0;const failedNames=[],nfFbNames=[];
+    const cardResults=new Array(N);
+    const setRowState=(name,ok)=>{
+      const idx=nameIdx.get(name.toLowerCase());
+      if(idx!=null)setRow(idx,ok?"st-ok":"st-err",ok?"✓":"✗");
+    };
+    const worker=async()=>{
+      while(next<N){
+        const k=next++;const it=unique[k];
+        ovUpd(`Buscando EN e traduzindo ${k+1} de ${N}: ${it.name}…`,2+Math.round((k+1)/N*60));
+        setStatus(`Buscando EN e traduzindo ${k+1} de ${N}: ${it.name}…`);
+        try{
+          const card=await buildPdfCardFromEnglish(it);
+          cardResults[k]=card;
+          if(card.source==="pt-oficial")official++;
+          else if(card.source==="falhou"){failed++;failedNames.push(it.name);setRowState(it.name,false);continue}
+          else if(card.source==="nf-fallback"){nfFb++;nfFbNames.push(it.name);setRowState(it.name,true)}
+          else translated++;
+          setRowState(it.name,true);
+        }catch(err){
+          failed++;failedNames.push(it.name);setRowState(it.name,false);
+        }
+      }
+    };
+    await Promise.all(Array.from({length:CONC},()=>worker()));
+    const cards=cardResults.filter(Boolean);
+    if(!cards.length){setStatus("Nenhuma carta com dados para exportar.","err");return}
+
+    // 9 cartas por página (3 colunas × 3 linhas), em formato de carta (proxy).
+    const cardHtml=c=>`
+          <div class="pdf-card">
+            <span class="pdf-card-qty">${c.qty}x</span>
+            <div class="pdf-card-art">${c.imgSrc?`<img src="${esc(c.imgSrc)}" alt="${esc(c.ptName)}" crossorigin="anonymous" data-fb="${esc(c.pingSrc||"")}" onerror="onArtErrorPdf(this)">`:`<div class="c-imgfallback">Sem imagem</div>`}</div>
+            <div class="pdf-card-ptbox">
+              <div class="pdf-card-name">${esc(c.ptName)}</div>
+              <div class="pdf-card-type">${esc(c.ptType)}</div>
+              <div class="pdf-card-text">${textToHtml(c.ptRules)||"—"}</div>
+            </div>
+          </div>`;
+    const TITLE='<div class="pdf-title">Commander — Deck Traduzido (PT-BR)</div>';
+    const PER_PAGE=9,pages=[];
+    for(let i=0;i<cards.length;i+=PER_PAGE){
+      const slice=cards.slice(i,i+PER_PAGE),rows=[];
+      for(let r=0;r<slice.length;r+=3){
+        rows.push(`<div class="pdf-grid">${slice.slice(r,r+3).map(cardHtml).join("")}</div>`);
+      }
+      pages.push(`<div class="pdf-page">${TITLE}${rows.join("")}</div>`);
+    }
+    container.innerHTML=pages.join("");
+
+    // Garante que NENHUM texto seja cortado: onde o texto não couber na carta,
+    // reduz a fonte em passos até caber (em vez de truncar com overflow hidden).
+    try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch(_){}
+    const fitText=el=>{
+      let size=9.5;
+      el.style.fontSize=size+"px";
+      while(el.scrollHeight>el.clientHeight&&size>6.5){
+        size-=0.5;
+        el.style.fontSize=size+"px";
+        el.style.lineHeight=(size<8?1.3:1.38).toString();
+      }
+    };
+    [...container.querySelectorAll(".pdf-card-text")].forEach(fitText);
+
+    setStatus("Carregando imagens das cartas…");
+    ovUpd("Carregando imagens das cartas…",66);
+    const imgs=[...container.querySelectorAll("img")];
+    const waitImg=async img=>{
+      if(img.complete&&img.naturalWidth>0)return;
+      try{
+        const p=img.decode?img.decode():new Promise((res,rej)=>{img.onload=res;img.onerror=rej});
+        await Promise.race([p,sleep(5000).then(()=>{throw new Error("timeout")})]);
+      }catch(_){if(img.parentNode)onArtErrorPdf(img)}
+    };
+    await Promise.all(imgs.map(waitImg));
+    await new Promise(r=>setTimeout(r,300));
+
+    const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"});
+    const sheets=[...container.querySelectorAll(".pdf-page")];
+    const results=new Array(sheets.length);
+    // Escala fixa 1.25 (nitidez boa no papel com ~30% menos pixels que 1.5).
+    // Celular tem bem menos memória: renderiza 1 página por vez, com pausa.
+    const narrow=isNarrow();
+    const RSCALE=1.25;
+    const RCONC=narrow?1:Math.min(2,sheets.length);
+    let rNext=0;
+    const rWorker=async()=>{
+      while(rNext<sheets.length){
+        const i=rNext++;
+        ovUpd(`Renderizando página ${i+1} de ${sheets.length}…`,72+Math.round((i+1)/sheets.length*23));
+        const canvas=await html2canvas(sheets[i],{useCORS:true,allowTaint:true,scale:RSCALE,backgroundColor:"#ffffff",imageTimeout:8000,logging:false});
+        results[i]=canvas.toDataURL("image/jpeg",0.85);
+        // Libera a memória do canvas antes da próxima página (importante no celular)
+        canvas.width=canvas.height=0;
+        if(narrow)await sleep(60);
+      }
+    };
+    await Promise.all(Array.from({length:RCONC},()=>rWorker()));
+    for(let i=0;i<results.length;i++){
+      if(i>0)pdf.addPage();
+      pdf.addImage(results[i],"JPEG",0,0,210,297,undefined,"FAST");
+    }
+    ovUpd("Montando prévia…",100);
+    setStatus("Montando prévia…");
+    showPdfPreview(pdf.output("bloburl"));
+    if(failed||nfFb){
+      const names=failedNames.concat(nfFbNames).slice(0,6).map(n=>`"${n}"`).join(", ")+(failedNames.length+nfFbNames.length>6?"…":"");
+      const parts=[`PDF gerado — ${official} oficiais, ${translated} traduzidas.`];
+      if(failed)parts.push(`${failed} ficaram em inglês; use "Verificar tradução" nelas e gere de novo.`);
+      if(nfFb)parts.push(`${nfFb} não existem no Scryfall (proxy gerado): ${names}`);
+      setStatus(parts.join(" "),"warn");
+    }else{
+      setStatus(`PDF gerado em PT — ${official} oficiais, ${translated} traduzidas automaticamente.`,"ok");
+    }
+  }catch(err){
+    setStatus("Erro ao gerar PDF: "+err.message,"err");
+  }finally{
+    container.innerHTML="";
+    if(ov.parentNode)document.body.removeChild(ov);
+    state.busy=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;$("translateAllBtn").disabled=false;$("reload").disabled=false;$("load").disabled=false;
+    if(state.selected)selectCardByName(state.selected);
+  }
+}
+
+// ===== Prévia do PDF (modal in-app) =====
+function showPdfPreview(url){
+  const narrow=isNarrow();
+  const box=document.createElement("div");
+  box.className="preview-box";
+  // No celular (iOS em especial) o Safari costuma não renderizar PDF em iframe
+  // com blob URL — a prévia fica em branco. Ali mostramos um aviso com ação direta.
+  box.innerHTML=`<div class="preview-bar">
+    <span class="preview-title">deck_commander_PT.pdf</span>
+    <div class="preview-actions">
+      ${narrow?`<button type="button" class="btn-pdf open">Abrir</button>`:""}
+      <button type="button" class="btn-pdf download">${narrow?"Salvar":"Baixar PDF"}</button>
+      <button type="button" class="btn-pdf close">Fechar</button>
+    </div></div>
+    ${narrow
+      ? `<div class="preview-fallback">PDF pronto.<br><br>Alguns navegadores de celular não mostram a prévia aqui dentro. Use <strong>Abrir</strong> para ver em outra aba ou <strong>Salvar</strong> para baixar o arquivo.</div>`
+      : `<iframe class="preview-frame" src="${url}" title="Prévia do PDF"></iframe>`}`;
+  document.body.appendChild(box);
+  const close=()=>{box.remove();URL.revokeObjectURL(url)};
+  box.querySelector(".close").addEventListener("click",close);
+  const openBtn=box.querySelector(".open");
+  if(openBtn)openBtn.addEventListener("click",()=>{window.open(url,"_blank")});
+  box.querySelector(".download").addEventListener("click",()=>{
+    const a=document.createElement("a");
+    a.href=url;a.download="deck_commander_PT.pdf";
+    document.body.appendChild(a);a.click();a.remove();
+    close();
+  });
+}
+// ===== Decks salvos (acesso rápido) =====
+const SAVED_KEY="deckpt_saved_decks_v1";
+const MAX_SAVED_DECKS=12;
+function loadSavedDecks(){
+  try{const s=localStorage.getItem(SAVED_KEY);const a=s?JSON.parse(s):[];return Array.isArray(a)?a:[]}catch(_){return[]}
+}
+function writeSavedDecks(arr){try{localStorage.setItem(SAVED_KEY,JSON.stringify(arr))}catch(_){}}
+function renderSavedDecks(){
+  const menu=$("savedDecksMenu"),badge=$("savedDecksBadge");
+  const decks=loadSavedDecks().sort((a,b)=>b.savedAt-a.savedAt);
+  if(decks.length){badge.textContent=String(decks.length);badge.classList.remove("hidden")}
+  else{badge.classList.add("hidden")}
+  if(!decks.length){
+    menu.innerHTML=`<div class="dd-empty">Nenhum deck salvo ainda.<br>Use "Salvar deck" para guardar a lista atual.</div>`;
+    return;
+  }
+  menu.innerHTML=decks.map(d=>`<div class="saved-deck-row" data-id="${esc(d.id)}" role="menuitem" tabindex="0" title="Clique para carregar">
+      <span class="sd-name">${esc(d.name)}</span>
+      <span class="sd-count">${d.names} nomes · ${d.count}×</span>
+      <button type="button" class="sd-del" data-id="${esc(d.id)}" title="Apagar deck salvo">×</button>
+    </div>`).join("");
+}
+function openSavedDecksMenu(open){
+  const menu=$("savedDecksMenu"),btn=$("savedDecksBtn");
+  menu.classList.toggle("hidden",!open);
+  btn.setAttribute("aria-expanded",open?"true":"false");
+}
+function saveCurrentDeck(){
+  const text=$("list").value;
+  const items=parseList(text);
+  if(!items.length){setStatus("Nada para salvar — cole ao menos uma carta na lista.","err");return}
+  const decks=loadSavedDecks();
+  let name=prompt("Nome para este deck:","");
+  if(name==null)return;
+  name=name.trim();
+  if(!name){setStatus("Dê um nome ao deck para salvar.","err");return}
+  const total=items.reduce((s,x)=>s+x.qty,0);
+  const existing=decks.find(d=>d.name.toLowerCase()===name.toLowerCase());
+  if(existing){
+    if(!confirm(`Já existe um deck salvo chamado "${name}". Sobrescrever com a lista atual?`))return;
+    existing.text=text;existing.savedAt=Date.now();existing.count=total;existing.names=items.length;
+  }else{
+    if(decks.length>=MAX_SAVED_DECKS){setStatus(`Limite de ${MAX_SAVED_DECKS} decks salvos atingido. Apague um deck salvo antes de adicionar outro.`,"err");return}
+    decks.push({id:String(Date.now())+Math.random().toString(36).slice(2,7),name,text,savedAt:Date.now(),count:total,names:items.length});
+  }
+  writeSavedDecks(decks);
+  renderSavedDecks();
+  setStatus(`Deck "${name}" salvo (${items.length} nomes).`,"ok");
+}
+function loadSavedDeck(id){
+  const d=loadSavedDecks().find(x=>x.id===id);
+  if(!d)return;
+  $("list").value=d.text;
+  openSavedDecksMenu(false);
+  $("load").click();
+}
+function deleteSavedDeck(id){
+  const decks=loadSavedDecks();
+  const d=decks.find(x=>x.id===id);
+  if(!d)return;
+  if(!confirm(`Apagar o deck salvo "${d.name}"? Isso não afeta a lista carregada agora.`))return;
+  writeSavedDecks(decks.filter(x=>x.id!==id));
+  renderSavedDecks();
+}
+// ===== Mobile: abas EN/PT + swipe entre cartas =====
+function isMobileLayout(){
+  try{return window.matchMedia("(max-width:700px)").matches}catch(_){return false}
+}
+function switchLangTab(l){
+  langTab=l==="pt"?"pt":"en";
+  document.querySelectorAll("#ptTabs .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.lang===langTab));
+  if(!isMobileLayout())return;
+  const en=$("enWrap"),pt=$("ptWrap");
+  if(en)en.classList.toggle("hidden",langTab==="pt");
+  if(pt)pt.classList.toggle("hidden",langTab!=="pt");
+}
+function cardListOrder(){
+  const q=$("lsearch").value.trim().toLowerCase();
+  if(!q)return state.items.map((it,i)=>i);
+  return [...document.querySelectorAll("#lbody .lrow")].filter(r=>!r.classList.contains("hidden")).map(r=>Number(r.dataset.idx));
+}
+function selectOffset(delta){
+  if(state.busy)return;
+  const order=cardListOrder();
+  if(!order.length||currentIdx==null)return;
+  let pos=order.indexOf(currentIdx);
+  if(pos<0)pos=0;
+  pos=(pos+delta+order.length)%order.length;
+  const obj=state.items[order[pos]];
+  if(obj)selectCard(obj.name,order[pos]);
+}
+// ===== Events =====
+function selectCardByName(name){
+  const idx=nameIdx.get(name.toLowerCase());
+  if(idx!=null)return selectCard(name,idx);
+}
+$("load").addEventListener("click",async()=>{
+  if(state.busy)return;
+  const items=parseList($("list").value);
+  if(!items.length){setStatus("Lista vazia. Cole ao menos uma carta por linha.","err");return}
+  const total=items.reduce((s,x)=>s+x.qty,0);
+  state.items=items;
+  updateListInfo();
+  renderList();
+  $("enPanel").innerHTML=`<div class="placeholder">Clique numa carta da lista ao lado.</div>`;
+  $("ptPanel").innerHTML=`<div class="placeholder">A tradução aparecerá aqui.</div>`;
+  state.selected=null;
+  $("parseHint").textContent=total>100?`⚠ ${total} cartas no total (limite sugerido: 100). Carregando mesmo assim…`:`✔ ${items.length} nomes únicos · ${total} cartas no total`;
+  $("parseHint").className="status "+(total>100?"warn":"ok");
+  await symbology(false);
+  state.busy=true;$("load").disabled=true;$("verifyBtn").disabled=true;$("savePdfBtn").disabled=true;$("translateAllBtn").disabled=true;
+  setStatus(`Verificando ${items.length} cartas no Scryfall…`);
+  try{
+    await prefetchAll(items);
+    const errs=document.querySelectorAll("#lbody .st-err").length;
+    setStatus(errs?`Baixadas ${items.length} cartas (${errs} com erro). Traduzindo pendentes…`:`Baixadas ${items.length} cartas. Traduzindo pendentes…`);
+    // Após baixar todas em inglês, traduz automaticamente as pendentes
+    if(getPendingCount()>0){
+      state.busy=false;$("load").disabled=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;$("translateAllBtn").disabled=false;
+      await translatePendingAll();
+    }else{
+      setStatus(errs?`Pronto. ${errs} carta(s) com erro. Clique numa carta (✓) para ver EN + PT.`:`Pronto. Todas as cartas já estavam traduzidas.`,"ok");
+      state.busy=false;$("load").disabled=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;$("translateAllBtn").disabled=false;
+    }
+  }catch(err){
+    setStatus("Erro ao carregar: "+err.message,"err");
+    state.busy=false;$("load").disabled=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;$("translateAllBtn").disabled=false;
+  }
+});
+$("list").addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter")$("load").click()});
+$("clear").addEventListener("click",()=>{
+  $("list").value="";
+  $("status").textContent="";$("status").className="status";
+  $("parseHint").textContent="";$("parseHint").className="status";
+  $("lsearch").value="";
+  $("lbody").innerHTML="";
+  $("enPanel").innerHTML=`<div class="placeholder">Clique numa carta da lista ao lado.</div>`;
+  $("ptPanel").innerHTML=`<div class="placeholder">A tradução aparecerá aqui.</div>`;
+  $("listInfo").textContent="0 cartas · 0 nomes";
+  state.items=[];state.selected=null;$("verifyBtn").disabled=true;$("savePdfBtn").disabled=true;$("translateAllBtn").disabled=true;
+});
+$("reload").addEventListener("click",async()=>{
+  if(!state.items.length){setStatus("Carregue um deck primeiro.","warn");return}
+  if(!confirm("Limpar o cache (EN/PT/automática) e buscar tudo novamente?"))return;
+  Object.keys(localStorage).filter(k=>k.startsWith("deckpt_v1_")||k.startsWith("deckpt_auto_v1_")||k.startsWith("deckpt_auto_v2_")||k.startsWith("deckpt_auto_v3_")||k.startsWith("deckpt_auto_v4_")||k.startsWith("deckpt_nf_v1_")||k==="deckpt_symb_v1").forEach(k=>localStorage.removeItem(k));
+  state.busy=true;$("reload").disabled=true;$("verifyBtn").disabled=true;$("savePdfBtn").disabled=true;$("translateAllBtn").disabled=true;
+  setStatus("Recarregando dados do Scryfall…");
+  try{
+    await prefetchAll(state.items);
+    if(state.selected)await selectCardByName(state.selected);
+    setStatus("Cache renovado.","ok");
+  }catch(err){setStatus("Erro ao recarregar: "+err.message,"err")}
+  state.busy=false;$("reload").disabled=false;$("verifyBtn").disabled=false;$("savePdfBtn").disabled=false;$("translateAllBtn").disabled=false;
+});
+$("lsearch").addEventListener("input",()=>{
+  const q=$("lsearch").value.trim().toLowerCase();
+  document.querySelectorAll("#lbody .lrow").forEach(r=>{
+    r.classList.toggle("hidden",q&&!r.dataset.hay.includes(q));
+  });
+});
+$("lbody").addEventListener("click",e=>{
+  const r=e.target.closest(".lrow");
+  if(r)selectCard(r.dataset.raw,Number(r.dataset.idx));
+});
+$("lbody").addEventListener("keydown",e=>{
+  if(e.key==="Enter"||e.key===" "){const r=e.target.closest(".lrow");if(r){e.preventDefault();selectCard(r.dataset.raw,Number(r.dataset.idx))}}
+});
+$("verifyBtn").addEventListener("click",verifyTranslations);
+$("translateAllBtn").addEventListener("click",translatePendingAll);
+$("savePdfBtn").addEventListener("click",exportPdf);
+$("saveDeckBtn").addEventListener("click",saveCurrentDeck);
+$("statsBtn").addEventListener("click",openStats);
+$("statsClose").addEventListener("click",closeStats);
+$("savedDecksBtn").addEventListener("click",e=>{
+  e.stopPropagation();
+  openSavedDecksMenu($("savedDecksMenu").classList.contains("hidden"));
+});
+$("savedDecksMenu").addEventListener("click",e=>{
+  const del=e.target.closest(".sd-del");
+  if(del){e.stopPropagation();deleteSavedDeck(del.dataset.id);return}
+  const row=e.target.closest(".saved-deck-row");
+  if(row)loadSavedDeck(row.dataset.id);
+});
+$("savedDecksMenu").addEventListener("keydown",e=>{
+  if(e.key==="Enter"||e.key===" "){
+    const row=e.target.closest(".saved-deck-row");
+    if(row){e.preventDefault();loadSavedDeck(row.dataset.id)}
+  }
+});
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".dd-wrap"))openSavedDecksMenu(false);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape")return;
+  if(!$("lcDefeat").classList.contains("hidden")){$("lcDefeat").classList.add("hidden");return}
+  if(!$("statsBox").classList.contains("hidden")){closeStats();return}
+  if($("lcDrawer").classList.contains("on")){closeLcDrawer();return}
+  if(!$("lifeCalc").classList.contains("hidden")){exitLifeCalc();return}
+  if(!$("lcModal").classList.contains("hidden")){closeLcModal();return}
+  openSavedDecksMenu(false);
+});
+let touchX=0;
+document.querySelector(".layout").addEventListener("touchstart",e=>{touchX=e.touches[0].clientX},{passive:true});
+document.querySelector(".layout").addEventListener("touchend",e=>{
+  const t=e.target;
+  if(t.closest("textarea,input,.list-scroll,.dd-menu,.preview-box,.pdf-overlay"))return;
+  const dx=e.changedTouches[0].clientX-touchX;
+  if(Math.abs(dx)>60)selectOffset(dx<0?1:-1);
+},{passive:true});
+// ===== Calculadora de Vida (contador de pontos) =====
+const lcCfgKey="deckpt_lc_cfg_v1";
+function lcCfg(){try{const s=localStorage.getItem(lcCfgKey);const j=s?JSON.parse(s):null;if(j&&Number.isFinite(Number(j.life)))return Math.max(1,Math.round(Number(j.life)))}catch(_){}return 40}
+function saveLcCfg(life){try{localStorage.setItem(lcCfgKey,JSON.stringify({life}))}catch(_){}}
+let lcPlayers=[],lcCount=0,lcHoldT=null;
+function lcToast(msg){const el=document.createElement("div");el.className="lc-toast";el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),1800)}
+// ---------- Cores de mana do deck salvo (identidade de cor) ----------
+const lcColorCache=new Map();
+const lcColorPending=new Set();
+function lcDeckById(id){
+  if(!id)return null;
+  return loadSavedDecks().find(d=>d.id===id)||null;
+}
+function lcDeckColors(id){
+  if(!id)return {colors:[],missing:[],total:0};
+  if(lcColorCache.has(id))return lcColorCache.get(id);
+  const d=lcDeckById(id);
+  const res={colors:[],missing:[],total:0};
+  if(d){
+    const set=new Set();
+    for(const it of parseList(d.text)){
+      res.total++;
+      let e=null;
+      try{const s=localStorage.getItem(cacheKey(it.name));if(s)e=JSON.parse(s)}catch(_){}
+      if(!e||!e.en){res.missing.push(it.name);continue}
+      // carta no cache sem identidade = incolor (terreno/artefato), nao "faltando"
+      identityOf(e.en).forEach(c=>{if(COLORDER.includes(c))set.add(c)});
+    }
+    res.colors=COLORDER.filter(c=>set.has(c));
+  }
+  lcColorCache.set(id,res);
+  return res;
+}
+async function lcFillDeckColors(id){
+  if(!id||lcColorPending.has(id))return null;
+  lcColorPending.add(id);
+  try{
+    for(let pass=0;pass<2;pass++){
+      const cur=lcDeckColors(id);
+      if(!cur.missing.length)break;
+      for(const nm of cur.missing){try{await getEntry(nm)}catch(_){}}
+      lcColorCache.delete(id);
+    }
+    return id;
+  }finally{lcColorPending.delete(id)}
+}
+function ensureLcColors(id){
+  if(!id)return;
+  if(!lcDeckColors(id).missing.length)return;
+  lcFillDeckColors(id).then(done=>{if(done)updateLcMana()});
+}
+function lcManaHtml(id){
+  const d=lcDeckById(id);
+  if(!d)return `<span class="lc-mana-none">${loadSavedDecks().length?"sem deck":"—"}</span>`;
+  const c=lcDeckColors(id);
+  if(c.colors.length){
+    return c.colors.map(k=>MANA_SVG[k]||"").join("")
+      +(c.missing.length?`<span class="lc-mana-more">…</span>`:"");
+  }
+  if(!c.total)return `<span class="lc-mana-none">deck vazio</span>`;
+  if(c.missing.length)return `<span class="lc-mana-none">buscando…</span>`;
+  return `<span class="lc-mana-none">incolor</span>`;
+}
+function updateLcMana(){
+  lcGridEl().querySelectorAll(".lc-card").forEach(card=>{
+    const p=lcPlayers[Number(card.dataset.i)];
+    if(!p)return;
+    const row=card.querySelector(".lc-mana");
+    if(row)row.innerHTML=lcManaHtml(p.deckId);
+  });
+}
+function pickDeck(i){
+  const p=lcPlayers[i];if(!p)return;
+  const decks=loadSavedDecks().sort((a,b)=>b.savedAt-a.savedAt);
+  if(!decks.length){lcToast("Nenhum deck salvo ainda.");return}
+  const list=decks.map((d,k)=>`${k+1}. ${d.name}`).join("\n");
+  const cur=decks.findIndex(d=>d.id===p.deckId);
+  const ans=prompt(`Deck do jogador ${i+1}:\n\n${list}\n\n0 = sem deck`,cur>=0?String(cur+1):"0");
+  if(ans===null)return;
+  const n=parseInt(ans,10);
+  if(!Number.isFinite(n)||n<0||n>decks.length)return;
+  p.deckId=n===0?"":decks[n-1].id;
+  renderLifeGrid();
+  ensureLcColors(p.deckId);
+}
+// ---------- Setup: quantidade + nomes ----------
+function renderLcCount(){
+  const el=$("lcCount");
+  el.innerHTML=[1,2,3,4].map(n=>`<button type="button" data-n="${n}" class="${n===lcCount?"active":""}"><b>${n}</b><span>${n>1?"jogadores":"jogador"}</span></button>`).join("");
+  [...el.querySelectorAll("button")].forEach(b=>b.addEventListener("click",()=>{lcCount=Number(b.dataset.n);renderLcCount();renderLcNames();$("lcStart").disabled=false}));
+}
+function renderLcNames(){
+  const el=$("lcNames");
+  el.classList.toggle("on",lcCount>0);
+  const decks=loadSavedDecks().sort((a,b)=>b.savedAt-a.savedAt);
+  const opts=decks.length
+    ? `<option value="">— sem deck —</option>`+decks.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("")
+    : `<option value="">— nenhum deck salvo —</option>`;
+  el.innerHTML=Array.from({length:lcCount},(_,i)=>`
+      <div>
+        <label for="lcname_${i}">Nome do jogador ${i+1}</label>
+        <input id="lcname_${i}" data-i="${i}" type="text" maxlength="18" autocomplete="off" placeholder="Jogador ${i+1}">
+        <label class="lc-deck-lb" for="lcdeck_${i}">Deck do jogador ${i+1}</label>
+        <select id="lcdeck_${i}" data-i="${i}">${opts}</select>
+      </div>`).join("")
+    +(decks.length?"":`<div class="lc-names-hint">Salve um deck em “Decks salvos” para ver os ícones de mana nos cards.</div>`);
+}
+function lcGridEl(){return $("lcGrid")}
+function startLifeCalc(){
+  const names=[...$("lcNames").querySelectorAll("input")].map((inp,i)=>inp.value.trim()||`Jogador ${i+1}`);
+  const decks=[...$("lcNames").querySelectorAll("select")].map(sel=>sel.value||"");
+  lcPlayers=names.map((name,i)=>({name,life:lcCfg(),cmd:0,out:false,deckId:decks[i]||""}));
+  renderLifeGrid();
+  [...new Set(lcPlayers.map(p=>p.deckId).filter(Boolean))].forEach(ensureLcColors);
+  $("lcModal").classList.add("hidden");
+  $("lifeCalc").classList.remove("hidden");
+  closeLcDrawer();
+  document.body.style.overflow="hidden";
+}
+function exitLifeCalc(){
+  $("lifeCalc").classList.add("hidden");
+  $("lcDefeat").classList.add("hidden");
+  closeLcDrawer();
+  if($("lcModal").classList.contains("hidden"))document.body.style.overflow="";
+  lcPlayers=[];
+}
+function closeLcModal(){ $("lcModal").classList.add("hidden"); if($("lifeCalc").classList.contains("hidden"))document.body.style.overflow="" }
+// ---------- Contadores ----------
+function renderLifeGrid(){
+  const g=lcGridEl(),n=lcPlayers.length;
+  g.className="lc-grid "+(n===1?"one":n===2?"two":n===3?"three":"four");
+  g.innerHTML=lcPlayers.map((p,i)=>{
+    const deck=lcDeckById(p.deckId);
+    const manaTitle=deck?`Cores de ${deck.name} — tocar para trocar`:"Sem deck — tocar para escolher";
+    return `
+    <div class="lc-card${n===3&&i===2?" span3":""}" data-i="${i}">
+      <div class="lc-pname"><span class="lc-pnum">${i+1}</span><span class="lc-name" title="Tocar para renomear">${esc(p.name)}</span><span class="lc-out" hidden>perdeu</span></div>
+      <div class="lc-mana" data-i="${i}" title="${esc(manaTitle)}">${lcManaHtml(p.deckId)}</div>
+      <div class="lc-cmd">
+        <div class="lc-cap cmd">Dano de comandante</div>
+        <div class="lc-cnt">
+          <button type="button" class="lc-btn minus" data-act="-" data-t="cmd">−</button>
+          <div class="lc-num" data-i="${i}" data-t="cmd"><span class="lc-numval">${p.cmd}</span><input class="lc-numin hidden" data-i="${i}" data-t="cmd" type="number" inputmode="numeric" min="0" max="99999"></div>
+          <button type="button" class="lc-btn plus" data-act="+" data-t="cmd">+</button>
+        </div>
+      </div>
+      <div class="lc-life">
+        <div class="lc-cap">Vida</div>
+        <div class="lc-cnt">
+          <button type="button" class="lc-btn minus" data-act="-" data-t="life">−</button>
+          <div class="lc-num" data-i="${i}" data-t="life"><span class="lc-numval">${p.life}</span><input class="lc-numin hidden" data-i="${i}" data-t="life" type="number" inputmode="numeric" min="-9999" max="99999"></div>
+          <button type="button" class="lc-btn plus" data-act="+" data-t="life">+</button>
+        </div>
+      </div>
+    </div>`}).join("");
+  updateLifeWarnings();
+}
+function updateLifeWarnings(){
+  lcGridEl().querySelectorAll(".lc-card").forEach(card=>{
+    const p=lcPlayers[Number(card.dataset.i)];
+    if(!p)return;
+    const lv=card.querySelector('.lc-num[data-t="life"]');
+    lv.classList.toggle("dead",p.life<=0);
+    lv.classList.toggle("low",p.life>0&&p.life<=10);
+    const cd=card.querySelector('.lc-num[data-t="cmd"]');
+    cd.classList.toggle("dead",p.cmd>=21);
+    cd.classList.toggle("low",p.cmd>0&&p.cmd<21);
+    const lvBox=card.querySelector(".lc-life .lc-cnt");
+    if(lvBox){lvBox.classList.toggle("dead",p.life<=0);lvBox.classList.toggle("low",p.life>0&&p.life<=10)}
+    const cdBox=card.querySelector(".lc-cmd .lc-cnt");
+    if(cdBox){cdBox.classList.toggle("dead",p.cmd>=21);cdBox.classList.toggle("low",p.cmd>0&&p.cmd<21)}
+    card.classList.toggle("out",!!p.out);
+    const tag=card.querySelector(".lc-out");
+    if(tag)tag.hidden=!p.out;
+  });
+}
+function setVal(i,t,v){
+  if(!lcPlayers[i])return;
+  if(t==="cmd"&&v<0)v=0;
+  lcPlayers[i][t]=v;
+  const val=lcGridEl().querySelector(`.lc-card[data-i="${i}"] .lc-num[data-t="${t}"] .lc-numval`);
+  if(val)val.textContent=String(v);
+  updateLifeWarnings();
+  if(t==="cmd"&&!lcPlayers[i].out&&v>=21)markOut(i,v);
+}
+function markOut(i,dmg){
+  const p=lcPlayers[i];if(!p)return;
+  p.out=true;
+  updateLifeWarnings();
+  lcHoldStop();
+  $("lcDefeatName").textContent=p.name||("Jogador "+(i+1));
+  $("lcDefeatMsg").textContent="Seu comandante sofreu "+dmg+" pontos de dano, você perdeu!";
+  $("lcDefeat").classList.remove("hidden");
+}
+function openLcEditor(num){
+  const inp=num.querySelector(".lc-numin"),i=Number(num.dataset.i);
+  if(!inp||!inp.classList.contains("hidden"))return;
+  num.querySelector(".lc-numval").classList.add("hidden");
+  inp.classList.remove("hidden");
+  inp.value=String(lcPlayers[i][inp.dataset.t]);
+  inp.focus();inp.select();
+}
+function closeLcEditor(inp,commit){
+  const num=inp.closest(".lc-num"),i=Number(inp.dataset.i),t=inp.dataset.t;
+  const v=commit?Math.round(Number(inp.value)):lcPlayers[i][t];
+  inp.classList.add("hidden");
+  const val=num?num.querySelector(".lc-numval"):null;
+  if(val)val.classList.remove("hidden");
+  if(Number.isFinite(v)&&v!==lcPlayers[i][t])setVal(i,t,v);
+}
+function renamePlayer(i){
+  const p=lcPlayers[i];if(!p)return;
+  const name=(prompt(`Nome do jogador ${i+1}:`,p.name)||"").trim().slice(0,18);
+  if(name&&name!==p.name){p.name=name;renderLifeGrid()}
+}
+function resetLives(){const cfg=lcCfg();lcPlayers.forEach(p=>{p.life=cfg;p.cmd=0;p.out=false});$("lcDefeat").classList.add("hidden");renderLifeGrid();lcToast("Vida resetada para "+cfg+".")}
+function lcHold(e){
+  if(e.cancelable)e.preventDefault();
+  const btn=e.target.closest(".lc-btn");
+  const card=btn&&btn.closest(".lc-card");
+  if(!btn||!card)return;
+  const i=Number(card.dataset.i),delta=btn.dataset.act==="+"?1:-1,t=btn.dataset.t||"life";
+  setVal(i,t,lcPlayers[i][t]+delta);
+  clearInterval(lcHoldT);
+  lcHoldT=setInterval(()=>{if(lcPlayers[i])setVal(i,t,lcPlayers[i][t]+delta)},85);
+}
+function lcHoldStop(){clearInterval(lcHoldT);lcHoldT=null}
+// ---------- Drawer e configurações ----------
+function openLcDrawer(open){
+  $("lcDrawer").classList.toggle("on",open);
+  $("lcScrim").classList.toggle("on",open);
+  $("lcBurger").setAttribute("aria-expanded",open?"true":"false");
+}
+function closeLcDrawer(){openLcDrawer(false)}
+function renderLcCfg(){
+  const cfg=lcCfg(),opts=$("lcCfgOpts");
+  const ilc=cfg!==20&&cfg!==40;
+  opts.innerHTML=["20","40","custom"].map(k=>{
+    const on=k==="custom"?ilc:String(cfg)===k;
+    const body=k==="custom"?`<b>+</b><span>Personalizado</span>`:`<b>${k}</b><span>pontos</span>`;
+    return `<button type="button" data-k="${k}" class="${on?"active":""}">${body}</button>`;
+  }).join("");
+  $("lcCfgCustom").classList.toggle("hidden",!ilc);
+  $("lcCfgCustom").value=ilc?String(cfg):"";
+  [...opts.querySelectorAll("button")].forEach(b=>b.addEventListener("click",()=>{
+    const cust=b.dataset.k==="custom";
+    $("lcCfgCustom").classList.toggle("hidden",!cust);
+    if(cust)setTimeout(()=>$("lcCfgCustom").focus(),0);
+    [...opts.querySelectorAll("button")].forEach(x=>x.classList.toggle("active",x===b));
+  }));
+}
+function applyLcCfg(){
+  const el=$("lcCfgOpts").querySelector("button.active");
+  const k=el?el.dataset.k:null;
+  let v;
+  if(k==="custom")v=Math.round(Number($("lcCfgCustom").value.trim()));
+  else v=k?Number(k):40;
+  if(!Number.isFinite(v)||v<1||v>999)v=40;
+  saveLcCfg(v);renderLcCfg();lcToast("Vida inicial: "+v+".");
+}
+function openLcSetup(){
+  lcCount=0;renderLcCount();renderLcNames();$("lcStart").disabled=true;
+  $("lcModal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+$("calcLifeBtn").addEventListener("click",openLcSetup);
+$("lcCloseModal").addEventListener("click",closeLcModal);
+$("lcStart").addEventListener("click",startLifeCalc);
+$("lcBurger").addEventListener("click",()=>openLcDrawer(!$("lcDrawer").classList.contains("on")));
+$("lcScrim").addEventListener("click",closeLcDrawer);
+$("lcRailExit").addEventListener("click",exitLifeCalc);
+$("lcMenuNewGame").addEventListener("click",()=>{closeLcDrawer();openLcSetup()});
+$("lcMenuDecks").addEventListener("click",()=>{
+  exitLifeCalc();
+  openSavedDecksMenu(loadSavedDecks().length>0);
+});
+$("lcMenuNew").addEventListener("click",()=>{exitLifeCalc();$("clear").click()});
+$("lcMenuReset").addEventListener("click",()=>{closeLcDrawer();resetLives()});
+$("lcMenuSettings").addEventListener("click",()=>{
+  const w=$("lcSettingsWrap"),show=w.classList.contains("hidden");
+  w.classList.toggle("hidden");
+  if(show)renderLcCfg();
+});
+$("lcMenuExit").addEventListener("click",()=>{closeLcDrawer();exitLifeCalc()});
+$("lcCfgApply").addEventListener("click",applyLcCfg);
+$("lcDefeatOk").addEventListener("click",()=>{$("lcDefeat").classList.add("hidden")});
+const lcGridElDOM=lcGridEl();
+lcGridElDOM.addEventListener("pointerdown",e=>{if(e.target.closest(".lc-btn"))lcHold(e)},{passive:false});
+window.addEventListener("pointerup",lcHoldStop);
+window.addEventListener("pointercancel",lcHoldStop);
+lcGridElDOM.addEventListener("click",e=>{
+  if(e.target.closest(".lc-name")){const c=e.target.closest(".lc-card");if(c)renamePlayer(Number(c.dataset.i));return}
+  if(e.target.closest(".lc-mana")){const c=e.target.closest(".lc-card");if(c)pickDeck(Number(c.dataset.i));return}
+  const num=e.target.closest(".lc-num");
+  if(num)openLcEditor(num);
+});
+lcGridElDOM.addEventListener("keydown",e=>{
+  const inp=e.target.closest(".lc-numin");
+  if(!inp)return;
+  if(e.key==="Enter"){e.preventDefault();closeLcEditor(inp,true)}
+  else if(e.key==="Escape"){closeLcEditor(inp,false)}
+});
+lcGridElDOM.addEventListener("focusout",e=>{
+  const inp=e.target;
+  if(inp&&inp.classList&&inp.classList.contains("lc-numin")&&!inp.classList.contains("hidden"))closeLcEditor(inp,false);
+});
+document.querySelectorAll("#ptTabs .seg-btn").forEach(b=>b.addEventListener("click",()=>switchLangTab(b.dataset.lang)));
+switchLangTab("en");
+renderSavedDecks();
+openLcSetup();
+</script>
+</body>
+</html>
