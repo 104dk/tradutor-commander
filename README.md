@@ -38,6 +38,7 @@ Cole a lista, o app busca cada carta no Scryfall, monta a versão oficial em PT 
 - **Duas abas (Inglês / Português)** com *swipe* entre cartas no mobile.
 - **PDF**: 9 cartas por página A4, com arte, tipos, regras e texto PT. Preview em modal antes de baixar. O botão **Salvar** pede o **nome do deck** antes de gerar: esse nome vira o subtítulo do PDF e o nome do arquivo em `Downloads/decks`.
 - **Contador de vida**: 20 / 40 / personalizado, multiplayer, press-and-hold para somar rápido, renomear jogadores, importar ícone de mana do deck salvo, e botão de defesa (duas vidas).
+- **Ranking do grupo**: placar por jogador e por deck (vitória 3, empate 1, derrota 0), com taxa de vitória e melhor deck. Registra a partida à mão ou monta a mesa direto do contador de vida (quem já levou 21 chega com a derrota marcada), e o grupo inteiro se troca entre aparelhos por um código de texto. Detalhes em [Ranking do grupo](#8-ranking-do-grupo).
 - **Estatísticas do deck**: cores, tipos e curva de mana. O chip **N nomes** é clicável e abre a lista de cartas do deck com nome original, tradução disponível e a origem dela (oficial do Scryfall ou automática).
 - **Decks salvos**: guarda listas no navegador para carregar rápido, e o botão **+ deck** importa um arquivo `.txt`/`.csv`/`.md` do dispositivo, usando o nome do arquivo como nome do deck.
 - **App Android**: o mesmo `index.html` roda dentro de um app WebView empacotado, disponível para download aqui em cima. O botão *Baixar app* some dentro do próprio app. Detalhes em [App Android](#app-android).
@@ -67,7 +68,7 @@ lista colada
                                           (com glossário de Magic preservado)
     │
     ├─ cache em localStorage (cartas e traduções separadas)
-    └─ PDF / contador de vida / estatísticas
+    └─ PDF / contador de vida / estatísticas / ranking
 ```
 
 ### 1. Parse da lista
@@ -137,6 +138,7 @@ Cada usuário tem seu próprio cache, por isso a segunda visita ao mesmo deck é
 | `deckpt_symb_v1` | simbologia do Scryfall (mapa de símbolos de mana) | sem expiração |
 | `deckpt_saved_decks_v1` | decks salvos | — |
 | `deckpt_lc_cfg_v1` | vida inicial do contador | — |
+| `deckpt_rank_v1` | ranking do grupo (jogadores, decks, histórico por carimbo de tempo) | — |
 
 Duas decisões importantes aí dentro:
 
@@ -151,34 +153,59 @@ Duas decisões importantes aí dentro:
 
 Modal inicial, vida inicial 20/40/personalizado, adição/subtração por toque com **press-and-hold** (repete a cada 85 ms), renomear jogador, escolher deck salvo para puxar o ícone de mana e modo de duas vidas (derrota). Estado em `deckpt_lc_cfg_v1`.
 
+### 8. Ranking do grupo
+
+Placar do grupo, guardado em `deckpt_rank_v1` — só no aparelho, como todo o resto do app.
+
+**Três abas dentro do modal:**
+
+| Aba | O que faz |
+| --- | --- |
+| `Ranking` | Tabela por pontos (vitória 3, empate 1, derrota 0) com V-D-E, taxa de vitória e o melhor deck. Tocar na linha abre os decks daquele jogador com o V-D-E de cada um; dá para corrigir à mão um resultado velho. |
+| `Registrar partida` | Uma linha por pessoa: nome, deck (com autocompletar nos decks salvos) e o resultado — **Vitória** / **Empate** / **Derrota**. Quem não jogou a partida inteira é só desmarcar o checkbox. **Salvar resultado** grava tudo de uma vez e volta para a tabela. |
+| `Grupo` | Cadastra e edita jogadores, define a **cor do deck** de cada um (as bolinhas W/U/B/R/G), e mostra o código de texto para passar o ranking inteiro para outro aparelho. |
+
+**Entradas para o mesmo lugar:**
+
+- o botão **Ranking** na barra de baixo;
+- dentro do contador de vida, pelo menu do ≡ e pelo botão que aparece quando alguém chega a 0 de vida;
+- quem vem da calculadora entra com a **mesa já montada**: os jogadores que estavam na tela vêm marcados, e quem já levou 21 de dano chega com a **derrota pré-marcada** (`rkSeedFromLifeCalc`).
+
+**Sem servidor, então o compartilhamento é por texto.** O botão *Gerar código* produz um texto `DTR1:` com jogadores, decks e o histórico completo; o botão *Importar* cola o código de outro aparelho e **mescla** por carimbo de tempo (`t`): o mesmo jogo não é contado duas vezes quando o código é importado outra vez, e o aparelho com o histórico mais novo sobrescreve só o que é mais recente. Tudo em `localStorage`, com `try/catch` como o resto do app.
+
+**Cores.** A cor do jogador é a cor do deck dele, e o app preenche sozinho quando o deck informado é um deck já salvo (a identidade vem do cache do Scryfall).
+
 ---
 
 ## Detalhamento técnico
 
 ### O arquivo `index.html` por dentro
 
-O app inteiro vive em um único arquivo de ~2.900 linhas, dividido em seções marcadas no código:
+O app inteiro vive em um único arquivo de ~3.470 linhas, dividido em seções marcadas no código:
 
 | Linha | Seção | O que faz |
 | --- | --- | --- |
-| 314 | `/* Calculadora de Vida */` | CSS do contador e do drawer mobile |
-| 608 | `// ===== Parse da lista =====` | normalização de linhas e limpeza de sufixo de exportador |
-| 647 | `// ===== Rede (Scryfall + tradução) =====` | timeout, retry, `Retry-After`, parsing de erros |
-| 928 | `// ===== Tradução automática =====` | glossário, proteção de mana, type line, cascata de provedores |
-| 1341 | `// ===== Render helpers =====` | simbologia, meta da carta, faces, escaping |
-| 1494 | `// ===== Monta o painel PT =====` | impressão oficial **ou** tradução automática |
-| 1527 | `// ===== Lista =====` | render da lista, filtro, seleção |
-| 1603 | `// ===== Seleção (EN + PT) =====` | cards das duas abas |
-| 1679 | `// ===== Verificar Tradução =====` | revalidação forçada |
-| 1739 | `// ===== Traduzir cartas pendentes =====` | lote em paralelo, cache-first |
-| 1902 | `// ===== Estatísticas do deck =====` | cores, tipos, curva e a lista de cartas |
-| 2091 | `// ===== Salvar Deck (PDF) =====` | modal do nome, paginação, html2canvas, jsPDF |
-| 2268 | `// ===== Prévia do PDF =====` | modal de preview |
-| 2300 | `// ===== Decks salvos =====` | persistência e menu rápido |
-| 2359 | `// ===== Importar deck de um arquivo =====` | leitura do arquivo, nome do deck, carga automática |
-| 2405 | `// ===== Mobile: abas EN/PT + swipe =====` | navegação por toque |
-| 2432 | `// ===== Events =====` | listeners |
-| 2568 | `// ===== Calculadora de Vida =====` | lógica do contador |
+| 205 | `/* 3a linha: Ranking ocupa 1 celula ... */` | posição do botão novo na barra de ações do mobile |
+| 314 | `/* ===== Calculadora de Vida ===== */` | CSS do contador e do drawer mobile |
+| 337 | `/* ===== Ranking do grupo ===== */` | CSS do modal do ranking |
+| 707 | `// ===== Parse da lista =====` | normalização de linhas e limpeza de sufixo de exportador |
+| 746 | `// ===== Rede (Scryfall + tradução) =====` | timeout, retry, `Retry-After`, parsing de erros |
+| 1027 | `// ===== Tradução automática =====` | glossário, proteção de mana, type line, cascata de provedores |
+| 1440 | `// ===== Render helpers =====` | simbologia, meta da carta, faces, escaping |
+| 1593 | `// ===== Monta o painel PT =====` | impressão oficial **ou** tradução automática |
+| 1626 | `// ===== Lista =====` | render da lista, filtro, seleção |
+| 1702 | `// ===== Seleção (EN + PT) =====` | cards das duas abas |
+| 1778 | `// ===== Verificar Tradução =====` | revalidação forçada |
+| 1838 | `// ===== Traduzir cartas pendentes =====` | lote em paralelo, cache-first |
+| 2001 | `// ===== Estatísticas do deck =====` | cores, tipos, curva e a lista de cartas |
+| 2190 | `// ===== Salvar Deck (PDF) =====` | modal do nome, paginação, html2canvas, jsPDF |
+| 2367 | `// ===== Prévia do PDF =====` | modal de preview |
+| 2399 | `// ===== Decks salvos =====` | persistência e menu rápido |
+| 2458 | `// ===== Importar deck de um arquivo =====` | leitura do arquivo, nome do deck, carga automática |
+| 2504 | `// ===== Mobile: abas EN/PT + swipe =====` | navegação por toque |
+| 2531 | `// ===== Events =====` | listeners |
+| 2668 | `// ===== Calculadora de Vida =====` | lógica do contador |
+| 2974 | `// ===== Ranking do grupo =====` | placar do grupo: estado, tabelas, código de troca |
 
 ### Decisões de arquitetura
 
@@ -196,8 +223,8 @@ O app inteiro vive em um único arquivo de ~2.900 linhas, dividido em seções m
 
 | Arquivo | Tamanho | Papel |
 | --- | --- | --- |
-| `index.html` | 241 KB | **o app inteiro** — HTML, CSS e JS inline |
-| `DeckTradutor.apk` | 676 KB | app Android assinado, servido direto pelo link *Baixar app* |
+| `index.html` | 273 KB | **o app inteiro** — HTML, CSS e JS inline |
+| `DeckTradutor.apk` | 684 KB | app Android assinado, servido direto pelo link *Baixar app* |
 | `og-image.jpg` | 62 KB | thumbnail 1200×630 do preview de link |
 | `vercel.json` | 576 B | headers de segurança do site e do APK |
 | `README.md` | — | esta documentação |
@@ -317,7 +344,7 @@ O projeto Android fica **fora** deste repositório, na pasta `Magic/tradutor-apk
 | Item | Valor |
 | --- | --- |
 | Package | `br.com.tradutordeck.app` |
-| Versão | 1.1.1 (`versionCode` 3) |
+| Versão | 1.2.0 (`versionCode` 4) |
 | Requisitos | Android 6.0 (API 23) ou superior |
 | Permissões | apenas `INTERNET` |
 | Assinatura | v1 + v2 + v3 |
@@ -392,6 +419,8 @@ vercel --prod        # deploy manual, se necessário
 - **ids**: todo `$("id")` no JS precisa de um `id="..."` correspondente no HTML (checagem automatizada: extrair os ids usados e comparar com os definidos);
 - **tag `<script>` inline**: o JS é um bloco só, no fim do `<body>`; erro de sintaxe quebra a página inteira — rode `node --check`;
 - **cache**: ao mudar a lógica de tradução, suba o sufixo de `autoKey` (`deckpt_auto_v4_` → `v5`) para invalidar o cache antigo;
+- **delegação de evento no modal do ranking**: um único listener no `#rkModal` trata tudo por `data-act`, e a linha do jogador (`.rk-row`, que abre os decks) é testada **antes** do bloco de ações — depois do `if(!act) return` ela nunca chegaria a ser tratada;
+- **grade da barra de ações no mobile**: `grid-area` não é herdável, então cada variação (`#dlApp`, `#rankBtn`, `calcLifeBtn` sem o link do APK) declara a sua;
 - **localStorage**: `setItem` sempre dentro de `try/catch` (Safari em modo privado e quotas cheias lançam exceção).
 
 ---
@@ -402,4 +431,5 @@ vercel --prod        # deploy manual, se necessário
 - **Provedores públicos de tradução têm cota.** O app respeita `Retry-After` e cai para o próximo provedor, mas em uso intenso pode ser preciso recarregar;
 - **Nomes em português podem falhar no Scryfall.** A busca em PT é uma escada de tentativas; nomes muito(token) incomuns às vezes exigem o nome em inglês;
 - **Cache é por navegador.** Trocar de máquina ou limpar dados do site significa traduzir de novo;
+- **O ranking também é por aparelho.** Não há servidor: para levar o placar do grupo para outro celular é preciso exportar e importar o código de texto da aba *Grupo* (ou registrar as mesmas partidas nos dois).
 - **Sem imagem offline para as cartas** além do cache: para uso 100% offline, o PDF já gerado é a melhor saída.

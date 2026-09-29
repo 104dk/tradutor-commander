@@ -199,10 +199,13 @@
       .h-actions .icon-btn{margin-left:0}
       #verifyBtn{grid-area:1/1}#translateAllBtn{grid-area:1/2}#savePdfBtn{grid-area:1/3}
       #statsBtn{grid-area:2/1}#calcLifeBtn{grid-area:2/2}#reload{grid-area:2/3;color:var(--muted)}
-      /* "Baixar app" ocupa a 3ª linha inteira (grid-area não é herdável, então precisa
-         ser declarado aqui como os outros). Dentro do APK o link é display:none e a
-         grade volta a ter 2 linhas. */
-      #dlApp{grid-area:3/1/4/4}
+      /* 3a linha: Ranking ocupa 1 celula e o "Baixar app" as outras duas. Dentro do
+         APK o download e display:none e sobra um buraco — por isso o #dlApp e
+         declarado aqui, e nao herdado (grid-area nao e herdavel). Sem o download,
+         quem estica nas duas celulas e a Calculadora de Vida. */
+      #rankBtn{grid-area:3/1}
+      #dlApp{grid-area:3/2/4/4}
+      body:not(.has-dl) #calcLifeBtn{grid-area:3/2/4/4}
       .h-actions .btn-action svg,.h-actions .icon-btn svg{width:16px;height:16px}
       .btn-action[data-short] .lbl{display:none}
       .btn-action[data-short]::after{content:attr(data-short)}
@@ -221,12 +224,9 @@
       .lsearch{min-height:44px}
       #savedDecksBtn,#addDeckBtn{min-height:44px}
       .h-actions .btn-action:hover,.h-actions .icon-btn:hover{transform:none}
-      main.wrap{padding:12px 10px calc(118px + var(--safe-b))}
-      /* O botão "Baixar app" vira a 3ª fileira da barra fixa de baixo (7 botões em
-         grade de 3 colunas), então o conteúdo precisa de mais folga embaixo.
-         Só quando ele existe: dentro do app Android o botão é escondido e a barra
-         volta a ter 2 fileiras. */
-      body.has-dl main.wrap{padding-bottom:calc(164px + var(--safe-b))}
+      /* 7 botões (8 com o download) em 3 colunas = 3 fileiras, com ou sem o link
+         do APK. Por isso a folga do conteúdo é a mesma nos dois casos. */
+      main.wrap{padding:12px 10px calc(164px + var(--safe-b))}
       body{overflow-x:hidden}
     }
     .btn-action:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-1px)}
@@ -334,6 +334,82 @@
     .lc-start{margin-top:16px}
     .lc-start .primary{width:100%;min-height:52px;font-size:15px}
     .lc-start .ghost{width:100%;margin-top:9px}
+    /* ===== Ranking do grupo ===== */
+    .lc-box.rk-box{width:min(760px,100%)}
+    .rk-scroll{max-height:min(60vh,520px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
+    .rk-tabs{display:flex;gap:7px;margin-bottom:12px}
+    .rk-tabs button{flex:1;min-height:42px;font-size:13px;font-weight:700;background:var(--ink);border:1px solid var(--line);color:var(--muted);border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif}
+    .rk-tabs button.active{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505}
+    .rk-table{width:100%;border-collapse:collapse;font-size:13px}
+    .rk-table th{font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 6px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+    .rk-table th:first-child,.rk-table td:first-child{text-align:left}
+    .rk-table td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;vertical-align:middle}
+    .rk-table tr:last-child td{border-bottom:0}
+    .rk-pos{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:var(--ink-4);border:1px solid var(--line);font-size:11.5px;font-weight:800;color:var(--muted)}
+    .rk-pos.p1{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505}
+    .rk-who{font-weight:700}
+    .rk-sub{color:var(--muted);font-size:11px;font-weight:500}
+    .rk-pts{font-weight:800;color:var(--gold-bright);font-size:14px}
+    .rk-wr{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+    .rk-mini{width:44px;height:6px;border-radius:999px;background:var(--ink-4);overflow:hidden;flex-shrink:0}
+    .rk-mini i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright))}
+    .rk-decks{margin-top:6px;display:none}
+    .rk-decks.on{display:block}
+    .rk-deck{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:12px}
+    .rk-deck:last-child{border-bottom:0}
+    .rk-deck b{font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rk-deck span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .rk-deck .rk-best{color:var(--ember);font-weight:700}
+    .rk-scheme{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:4px}
+    .rk-scheme button{min-height:44px;padding:7px 9px;font-size:12px;font-weight:700;background:var(--ink);border:1px solid var(--line);color:var(--muted);border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;line-height:1.25}
+    .rk-scheme button.active{background:var(--ink-4);border-color:var(--gold-dim);color:var(--gold-bright)}
+    .rk-custom{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+    .rk-custom label{font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px}
+    .rk-custom input{width:100%;min-height:44px;font-size:16px;text-align:center}
+    .rk-io textarea{width:100%;min-height:130px;font-size:11.5px;line-height:1.5;font-family:ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+    .rk-io-acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .rk-io-acts button{flex:1;min-width:120px;min-height:46px}
+    .rk-note{font-size:11.5px;line-height:1.5;color:var(--muted);margin:9px 0 0}
+    .rk-note b{color:var(--gold-bright)}
+    .rk-empty{text-align:center;padding:26px 10px;color:var(--muted);font-size:13px;line-height:1.6}
+    .rk-hint{padding:8px 11px;border:1px dashed var(--line);border-radius:9px;font-size:11.5px;line-height:1.5;color:var(--muted);margin-bottom:12px}
+    .rk-meta{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+    .rk-meta .chip{font-size:11.5px}
+    .rk-win-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+    .rk-win-row button{min-height:44px;flex:1;min-width:88px;font-size:13px;font-weight:700;background:var(--ink);border:1px solid var(--line);color:var(--text);border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;padding:8px}
+    .rk-win-row button.on{background:linear-gradient(155deg,var(--gold-bright),var(--gold-dim));border-color:var(--gold-bright);color:#211505}
+    .rk-res{padding:9px 11px;border-radius:9px;font-size:12.5px;line-height:1.5;margin-top:11px}
+    .rk-res.ok{background:rgba(111,221,139,.1);border:1px solid rgba(111,221,139,.35);color:#8ff0ad}
+    .rk-res.err{background:rgba(224,100,47,.1);border:1px solid rgba(224,100,47,.35);color:#f0a37f}
+    .rk-lb{display:block;font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gold);margin:0 0 5px}
+    .rk-dots{display:inline-flex;gap:3px;align-items:center;margin-right:6px;vertical-align:middle}
+    .rk-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+    .rk-decks-tr td{padding:0 6px 10px;border-bottom:0}
+    .rk-addrow{display:flex;gap:8px;margin-bottom:12px}
+    .rk-addrow input{flex:1;min-width:0;min-height:46px;font-size:16px}
+    .rk-addrow button{flex-shrink:0;min-height:46px;padding:0 16px;font-size:14px}
+    .rk-plrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:10px 11px;border:1px solid var(--line-soft);border-radius:9px;margin-bottom:7px;background:var(--ink);font-weight:500;min-height:46px}
+    .rk-plrow b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:700}
+    .rk-plrow span{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .rk-plrow.sel{border-color:var(--gold-dim);background:var(--ink-4)}
+    .rk-plrow:hover{border-color:var(--gold-dim)}
+    .rk-field input{width:100%;min-height:48px;font-size:16px}
+    .rk-pick{border:1px solid var(--line-soft);border-radius:11px;background:var(--ink);padding:10px 11px;margin-bottom:9px}
+    .rk-pick.on{border-color:var(--gold-dim)}
+    .rk-pickhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+    .rk-pickname{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;cursor:pointer;min-height:40px}
+    .rk-pickname input{width:20px;height:20px;min-height:0;flex-shrink:0;padding:0;accent-color:var(--gold-bright)}
+    .rk-pickname .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rk-decksel{flex:1;min-width:0;min-height:44px;font-size:16px}
+    .rk-pickdel{flex-shrink:0;width:40px;min-height:40px;padding:0;font-size:18px;color:var(--muted)}
+    @media (max-width:700px){
+      .rk-scheme{grid-template-columns:1fr}
+      .rk-table{font-size:12px}
+      .rk-table th,.rk-table td{padding:8px 4px}
+      .rk-box .dn-actions button{min-height:46px}
+      /* Em tela estreita os 3 botões de resultado precisam caber numa linha só */
+      .rk-win-row button{min-width:0;font-size:12.5px;padding:8px 2px}
+    }
     /* Tela dos contadores */
     .lifecalc{position:fixed;inset:0;z-index:1200;background:radial-gradient(ellipse 700px 420px at 50% -10%,rgba(213,83,63,.12),transparent 60%),var(--ink);display:flex;min-height:0}
     .lc-rail{width:54px;flex-shrink:0;background:linear-gradient(180deg,var(--ink-3),var(--ink-2));border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--safe-t)) 0 calc(8px + var(--safe-b))}
@@ -439,11 +515,12 @@
           <button id="savePdfBtn" class="btn-action primary" type="button" disabled title="Salvar o deck como PDF com imagens e traduções PT (você escolhe o nome do arquivo)" data-short="PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl">Salvar</span></button>
         </div>
         <div class="hgrp" role="group" aria-label="App Android">
-          <a id="dlApp" class="btn-action" href="DeckTradutor.apk?v=1.1.1" download title="Baixar o app para Android (Android 6.0 ou superior)" data-short="App"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg><span class="lbl">Baixar app</span></a>
+          <a id="dlApp" class="btn-action" href="DeckTradutor.apk?v=1.2.0" download title="Baixar o app para Android (Android 6.0 ou superior)" data-short="App"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg><span class="lbl">Baixar app</span></a>
         </div>
         <div class="hgrp" role="group" aria-label="Ferramentas">
-          <button id="statsBtn" class="btn-action" type="button" title="Ver estatísticas do deck (cores, tipos, curva de mana)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 13v4"/><path d="M12 9v8"/><path d="M17 5v12"/></svg>Stats</button>
-          <button id="reload" class="icon-btn ghost" type="button" title="Limpar cache e recarregar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="rankBtn" class="btn-action" type="button" title="Ranking do grupo: vitórias, pontos e estatísticas por deck" data-short="Rank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 5v13"/></svg><span class="lbl">Ranking</span></button>
+          <button id="statsBtn" class="btn-action" type="button" title="Ver estatísticas do deck (cores, tipos, curva de mana)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="4" width="3" height="14" rx="1"/></svg><span class="lbl">Estatísticas</span></button>
+          <button id="reload" class="icon-btn ghost" type="button" title="Limpar cache e recarregar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L3 12"/></svg></button>
         </div>
         <div class="hgrp" role="group" aria-label="Calculadora de vida">
           <button id="calcLifeBtn" class="btn-action" type="button" title="Abrir calculadora de vida (contador de pontos de vida)" data-short="Vida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="lbl">Calc. Vida</span></button>
@@ -516,9 +593,30 @@
   <div class="lc-box">
     <h2 id="lcDefeatName">Perdeu</h2>
     <p class="lc-sub" id="lcDefeatMsg"></p>
-    <div class="lc-start"><button id="lcDefeatOk" class="primary" type="button">Entendi</button></div>
+    <div class="lc-start"><button id="lcDefeatOk" class="primary" type="button">Entendi</button><button id="lcDefeatRank" class="ghost" type="button" title="Anotar o resultado desta partida no ranking do grupo">Registrar no ranking</button></div>
   </div>
 </div>
+<div id="rkModal" class="lc-modal hi hidden">
+  <div class="lc-box rk-box">
+    <h2>Ranking do grupo</h2>
+    <p class="lc-sub">Vitórias, pontos e o desempenho de cada deck. Fica salvo neste aparelho — para o grupo inteiro, compartilhe o código da aba <b>Grupo</b>.</p>
+    <div class="rk-tabs" id="rkTabs" role="tablist" aria-label="Abas do ranking">
+      <button type="button" role="tab" data-tab="rank" class="active" aria-selected="true">Ranking</button>
+      <button type="button" role="tab" data-tab="game" aria-selected="false">Registrar partida</button>
+      <button type="button" role="tab" data-tab="group" aria-selected="false">Grupo</button>
+    </div>
+    <div class="rk-scroll">
+      <div id="rkPaneRank"></div>
+      <div id="rkPaneGame" class="hidden"></div>
+      <div id="rkPaneGroup" class="hidden"></div>
+    </div>
+    <div id="rkRes" class="rk-res hidden"></div>
+    <div class="dn-actions">
+      <button type="button" class="ghost" id="rkClose">Fechar</button>
+    </div>
+  </div>
+</div>
+<datalist id="rkDeckList"></datalist>
 <div id="lifeCalc" class="lifecalc hidden">
   <div class="lc-rail">
     <button id="lcBurger" type="button" class="lc-burger" aria-label="Abrir menu da calculadora" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg></button>
@@ -531,6 +629,7 @@
 <aside id="lcDrawer" class="lc-drawer" aria-label="Menu da calculadora de vida">
   <h3>Calculadora de Vida</h3>
   <button type="button" class="mi" id="lcMenuNewGame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>Novo jogo</button>
+  <button type="button" class="mi" id="lcMenuRank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 5v13"/></svg>Ranking do grupo</button>
   <button type="button" class="mi" id="lcMenuReset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Resetar contadores</button>
   <button type="button" class="mi" id="lcMenuNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>Novo deck</button>
   <button type="button" class="mi" id="lcMenuDecks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Deck salvo</button>
@@ -2551,6 +2650,7 @@ document.addEventListener("keydown",e=>{
   if(e.key!=="Escape")return;
   if(!$("deckNameModal").classList.contains("hidden")){closeDeckNameModal();return}
   if(!$("lcDefeat").classList.contains("hidden")){$("lcDefeat").classList.add("hidden");return}
+  if(!$("rkModal").classList.contains("hidden")){closeRanking();return}
   if(!$("statsBox").classList.contains("hidden")){closeStats();return}
   if($("lcDrawer").classList.contains("on")){closeLcDrawer();return}
   if(!$("lifeCalc").classList.contains("hidden")){exitLifeCalc();return}
@@ -2871,10 +2971,486 @@ lcGridElDOM.addEventListener("focusout",e=>{
   const inp=e.target;
   if(inp&&inp.classList&&inp.classList.contains("lc-numin")&&!inp.classList.contains("hidden"))closeLcEditor(inp,false);
 });
+// ===== Ranking do grupo (por jogador e por deck) =====
+// Tudo local (localStorage). Para o grupo inteiro, o app exporta um código de texto
+// ("DTR1:...") que cada um importa; a mescla é por carimbo de tempo de cada jogador e
+// de cada deck, então importar o mesmo código duas vezes não soma nada.
+const RANK_KEY="deckpt_rank_v1";
+const RK_WIN_PTS=3,RK_DRAW_PTS=1;
+const RK_TABS=["rank","game","group"];
+let rkTab="rank",rkGame=[],rkEdit="",rkEditColor="",rkCodeText="",rkOpen={};
+function rkNorm(s){return String(s==null?"":s).trim().toLowerCase().replace(/\s+/g," ")}
+function rkNum(v){const n=Math.round(Number(v)||0);return n>0?n:0}
+function rkUid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+// Lê e normaliza: qualquer objeto gravado fora do formato (ou de uma versão antiga)
+// entra corrigido, para a tela nunca quebrar por um dado torto.
+function rkStore(){
+  let j=null;
+  try{const s=localStorage.getItem(RANK_KEY);j=s?JSON.parse(s):null}catch(_){}
+  const out={v:1,players:[]};
+  if(!j||!Array.isArray(j.players))return out;
+  j.players.forEach(p=>{
+    if(!p||!String(p.name||"").trim())return;
+    out.players.push({
+      id:String(p.id||rkUid()),
+      name:String(p.name).trim().slice(0,18),
+      color:COLORDER.filter(c=>String(p.color||"").includes(c)).join(""),
+      w:rkNum(p.w),l:rkNum(p.l),d:rkNum(p.d),t:rkNum(p.t),
+      decks:(Array.isArray(p.decks)?p.decks:[]).filter(x=>x&&String(x.name||"").trim()).map(x=>({name:String(x.name).trim().slice(0,60),w:rkNum(x.w),l:rkNum(x.l),d:rkNum(x.d),t:rkNum(x.t)}))
+    });
+  });
+  return out;
+}
+function rkSave(store){try{localStorage.setItem(RANK_KEY,JSON.stringify(store))}catch(_){}}
+function rkStat(p){const g=(p.w||0)+(p.l||0)+(p.d||0);return{g,pts:(p.w||0)*RK_WIN_PTS+(p.d||0)*RK_DRAW_PTS,wr:g?(p.w||0)/g:0}}
+function rkRec(r){return `${r.w||0}-${r.l||0}-${r.d||0}`}
+function rkSorted(){
+  return rkStore().players.slice().sort((a,b)=>{
+    const x=rkStat(a),y=rkStat(b);
+    return (y.pts-x.pts)||(y.wr-x.wr)||((b.w||0)-(a.w||0))||a.name.localeCompare(b.name,"pt-BR");
+  });
+}
+function rkColors(str){return COLORDER.filter(c=>String(str||"").includes(c))}
+function rkColorName(str){const c=rkColors(str);return c.length?c.map(k=>COLORS[k]).join(" + "):"sem cor definida"}
+function rkDots(str){
+  const c=rkColors(str);
+  return c.length?`<span class="rk-dots">${c.map(k=>`<i class="rk-dot" style="background:${COLPAL[k]}"></i>`).join("")}</span>`:`<span class="rk-dots"></span>`;
+}
+function rkDeckSlot(p,name){
+  const k=rkNorm(name);
+  if(!Array.isArray(p.decks))p.decks=[];
+  let d=p.decks.find(x=>rkNorm(x.name)===k);
+  if(!d){d={name:String(name).trim().slice(0,60),w:0,l:0,d:0,t:0};p.decks.push(d)}
+  return d;
+}
+function rkApply(rec,res,now){
+  if(res==="W")rec.w=(rec.w||0)+1;else if(res==="L")rec.l=(rec.l||0)+1;else rec.d=(rec.d||0)+1;
+  rec.t=now;
+}
+function rkMsg(msg,kind){
+  const el=$("rkRes");
+  if(!el)return;
+  el.className="rk-res"+(msg?" "+(kind||"ok"):" hidden");
+  el.textContent=msg||"";
+}
+// ---------- Aba Ranking ----------
+function rkBestDeck(decks){
+  const ok=decks.filter(d=>(d.w||0)+(d.l||0)>0);
+  if(!ok.length)return null;
+  return ok.reduce((a,b)=>((b.w/(b.w+b.l))>(a.w/(a.w+a.l))?b:a));
+}
+function rkRow(p,i){
+  const s=rkStat(p);
+  const decks=(p.decks||[]).filter(d=>(d.w||0)+(d.l||0)+(d.d||0)>0)
+    .sort((a,b)=>(b.w-a.w)||((b.w+b.l)-(a.w+a.l))||a.name.localeCompare(b.name,"pt-BR"));
+  const best=rkBestDeck(decks);
+  const list=decks.length
+    ? decks.map(d=>`<div class="rk-deck"><b>${esc(d.name)}</b><span class="${best===d?"rk-best":""}">${rkRec(d)}</span></div>`).join("")
+    : `<div class="rk-deck"><span>${p.decks&&p.decks.length?"nenhum deck com partidas registradas":"nenhum deck cadastrado"}</span></div>`;
+  return `<tr class="rk-row" data-id="${esc(p.id)}">
+      <td><span class="rk-pos${i===0&&s.g?" p1":""}">${i+1}</span></td>
+      <td><div class="rk-who">${rkDots(p.color)}${esc(p.name)}</div>
+          <div class="rk-sub">${rkColorName(p.color)} · ${decks.length?decks.length+(decks.length>1?" decks":" deck"):"sem deck"}</div></td>
+      <td>${rkRec(p)}</td>
+      <td class="rk-pts">${s.pts}</td>
+      <td><div class="rk-wr"><span>${s.g?Math.round(s.wr*100)+"%":"—"}</span><span class="rk-mini"><i style="width:${Math.round(s.wr*100)}%"></i></span></div></td>
+    </tr>
+    <tr class="rk-decks-tr"><td colspan="5"><div class="rk-decks${rkOpen[p.id]?" on":""}">${list}</div></td></tr>`;
+}
+function rkRenderRank(){
+  const pane=$("rkPaneRank"),rows=rkSorted();
+  if(!rows.length){
+    pane.innerHTML=`<div class="rk-hint">Cadastre quem joga com você e depois registre as partidas — o ranking é todo do grupo, e cada aparelho tem a sua cópia.</div>
+      <div class="rk-empty">Nenhum jogador no ranking ainda.
+        <div class="rk-io-acts" style="justify-content:center"><button type="button" class="ghost" data-act="goto-group">Cadastrar jogadores</button><button type="button" class="primary" data-act="goto-game">Registrar partida</button></div>
+      </div>`;
+    return;
+  }
+  const games=Math.round(rows.reduce((s,p)=>s+rkStat(p).g,0)/2);
+  const top=rows.filter(p=>rkStat(p).g>=3).sort((a,b)=>rkStat(b).wr-rkStat(a).wr)[0];
+  const chips=[`${games} ${games===1?"jogo":"jogos"}`,`Líder: ${rows[0].name} (${rkStat(rows[0]).pts})`];
+  if(top)chips.push(`Melhor taxa: ${top.name} ${Math.round(rkStat(top).wr*100)}%`);
+  pane.innerHTML=`<div class="rk-hint">Toque no jogador para abrir os decks dele. <b>Vitória</b> vale ${RK_WIN_PTS} ponto, <b>empate</b> vale ${RK_DRAW_PTS}.</div>
+    <table class="rk-table"><thead><tr><th>#</th><th>Jogador</th><th>V-D-E</th><th>Pts</th><th>Taxa</th></tr></thead>
+      <tbody>${rows.map(rkRow).join("")}</tbody></table>
+    <div class="rk-meta">${chips.map(c=>`<div class="chip">${esc(c)}</div>`).join("")}</div>`;
+}
+// ---------- Aba Registrar partida ----------
+function rkNewRow(name,deck,res){
+  const p=rkStore().players.find(x=>rkNorm(x.name)===rkNorm(name));
+  return {id:p?p.id:"",name:String(name||"").trim()||"Jogador",color:p?p.color:"",deck:String(deck||""),res:res||"",pick:true};
+}
+function rkRowFor(i){
+  const r=rkGame[i];
+  return `<div class="rk-pick${r.pick?" on":""}" data-i="${i}">
+    <div class="rk-pickhead">
+      <label class="rk-pickname"><input type="checkbox" data-act="pick"${r.pick?" checked":""}><span class="nm">${rkDots(r.color)}${esc(r.name)}</span></label>
+      <input class="rk-decksel" type="text" list="rkDeckList" placeholder="deck (opcional)" value="${esc(r.deck)}" maxlength="60" autocomplete="off" spellcheck="false">
+      <button type="button" class="rk-pickdel" data-act="del" title="Remover da partida" aria-label="Remover ${esc(r.name)} da partida">×</button>
+    </div>
+    <div class="rk-win-row">${[["W","Vitória"],["D","Empate"],["L","Derrota"]].map(([k,l])=>`<button type="button" data-act="res" data-r="${k}" class="${r.res===k?"on":""}">${l}</button>`).join("")}</div>
+  </div>`;
+}
+function rkRenderGame(){
+  const pane=$("rkPaneGame"),dl=$("rkDeckList");
+  if(dl)dl.innerHTML=loadSavedDecks().slice().sort((a,b)=>a.name.localeCompare(b.name,"pt-BR")).map(d=>`<option value="${esc(d.name)}"></option>`).join("");
+  const list=rkGame.length
+    ? rkGame.map((r,i)=>rkRowFor(i)).join("")
+    : `<div class="rk-empty">Ninguém na mesa ainda.<br>Adicione quem jogou — ou monte a partida pela Calculadora de Vida e abra o Ranking de lá.</div>`;
+  pane.innerHTML=`<div class="rk-hint">Desmarque quem não jogou, toque o resultado de cada um e escolha o deck (vem de <b>Decks salvos</b>; digitar um nome novo também vale).</div>
+    <div class="rk-addrow"><input id="rkGameName" type="text" placeholder="Nome do jogador" maxlength="18" autocomplete="off" spellcheck="false"><button type="button" class="ghost" data-act="add-name">Adicionar</button></div>
+    ${list}
+    <div class="rk-io-acts" style="margin-top:10px">
+      <button type="button" class="primary" data-act="save-game"${rkGame.length?"":" disabled"}>Salvar resultado</button>
+      <button type="button" class="ghost" data-act="clear-game"${rkGame.length?"":" disabled"}>Limpar</button>
+    </div>`;
+}
+function rkAddGameName(){
+  const inp=$("rkGameName");
+  const name=String(inp&&inp.value||"").trim().slice(0,18);
+  if(!name){rkMsg("Digite o nome do jogador.","err");return}
+  if(rkGame.some(r=>rkNorm(r.name)===rkNorm(name))){rkMsg(`${name} já está na mesa.`,"err");return}
+  rkGame.push(rkNewRow(name,"",""));
+  rkRenderGame();
+  const again=$("rkGameName");
+  if(again)again.focus();
+}
+function rkSaveGame(){
+  const rows=rkGame.filter(r=>r.pick);
+  if(!rows.length){rkMsg("Desmarque todo mundo ou adicione um jogador antes de salvar.","err");return}
+  if(rows.some(r=>!r.res)){rkMsg("Falta o resultado de alguém: toque em Vitória, Empate ou Derrota.","err");return}
+  if(!rows.some(r=>r.res==="W")){rkMsg("Marque pelo menos uma vitória — sem vencedor a partida não fecha.","err");return}
+  const all=rkStore(),now=Date.now();
+  let novos=0;
+  rows.forEach(r=>{
+    let p=all.players.find(x=>x.id===r.id)||all.players.find(x=>rkNorm(x.name)===rkNorm(r.name));
+    if(!p){p={id:rkUid(),name:r.name,color:"",w:0,l:0,d:0,t:0,decks:[]};all.players.push(p);novos++}
+    rkApply(p,r.res,now);
+    const deck=String(r.deck||"").trim();
+    if(deck)rkApply(rkDeckSlot(p,deck),r.res,now);
+    // A cor do deck entra sozinha quando o deck é um salvo (identidade já busca no
+    // Scryfall/cache) e o jogador ainda não tem cor definida.
+    if(!p.color){
+      const saved=loadSavedDecks().find(d=>rkNorm(d.name)===rkNorm(deck));
+      if(saved){
+        const c=lcDeckColors(saved.id).colors;
+        if(c.length){p.color=c.join("");p.t=now}
+      }
+    }
+  });
+  rkSave(all);
+  rkGame=[];rkOpen={};
+  rkSetTab("rank");
+  // a confirmação vai depois da troca de aba: rkSetTab limpa a mensagem
+  rkMsg(`Partida salva${novos?` — ${novos} jogador(es) entraram no ranking`:""}.`,"ok");
+}
+// ---------- Aba Grupo (jogadores + código compartilhável) ----------
+function rkSchemeHtml(sel){
+  const s=String(sel||"");
+  return COLORDER.map(c=>`<button type="button" data-c="${c}" class="${s.includes(c)?"active":""}">${COLORS[c]}</button>`).join("")
+    +`<button type="button" data-c="0" class="${s?"":"active"}">Incolor</button>`;
+}
+function rkRenderGroup(){
+  const pane=$("rkPaneGroup"),all=rkStore();
+  const list=all.players.length
+    ? all.players.slice().sort((a,b)=>a.name.localeCompare(b.name,"pt-BR")).map(p=>`<button type="button" class="rk-plrow${p.id===rkEdit?" sel":""}" data-act="edit" data-id="${esc(p.id)}">${rkDots(p.color)}<b>${esc(p.name)}</b><span>${rkRec(p)} · ${rkStat(p).pts} pts</span></button>`).join("")
+    : `<div class="rk-empty">Nenhum jogador cadastrado.</div>`;
+  const p=rkEdit?all.players.find(x=>x.id===rkEdit):null;
+  pane.innerHTML=`
+    <div class="rk-addrow"><input id="rkNewName" type="text" placeholder="Nome do jogador" maxlength="18" autocomplete="off" spellcheck="false"><button type="button" class="primary" data-act="add-player">Cadastrar</button></div>
+    ${list}
+    <div class="${p?"":"hidden"}" style="margin-top:14px">
+      <div class="rk-field"><label class="rk-lb" for="rkEditName">Nome</label><input id="rkEditName" type="text" maxlength="18" autocomplete="off" spellcheck="false" value="${p?esc(p.name):""}"></div>
+      <p class="rk-lb" style="margin-top:13px">Cores do deck</p>
+      <div class="rk-scheme" data-act="scheme">${rkSchemeHtml(p?rkEditColor:"")}</div>
+      <p class="rk-lb" style="margin-top:13px">Histórico</p>
+      <div class="rk-custom">
+        <div><label for="rkW">Vitórias</label><input id="rkW" type="number" inputmode="numeric" min="0" max="999" value="${p?rkNum(p.w):0}"></div>
+        <div><label for="rkL">Derrotas</label><input id="rkL" type="number" inputmode="numeric" min="0" max="999" value="${p?rkNum(p.l):0}"></div>
+        <div><label for="rkD">Empates</label><input id="rkD" type="number" inputmode="numeric" min="0" max="999" value="${p?rkNum(p.d):0}"></div>
+      </div>
+      <div class="dn-actions"><button type="button" class="primary" data-act="save-player">Salvar jogador</button><button type="button" class="ghost" data-act="del-player">Remover</button></div>
+    </div>
+    <p class="rk-lb" style="margin-top:18px">Código do ranking</p>
+    <div class="rk-io">
+      <textarea id="rkCode" placeholder="DTR1:… (gere o código, copie e mande no grupo)" spellcheck="false"></textarea>
+      <div class="rk-io-acts">
+        <button type="button" class="ghost" data-act="gen-code">Gerar</button>
+        <button type="button" class="ghost" data-act="copy-code">Copiar</button>
+        <button type="button" class="primary" data-act="import-code">Importar</button>
+        <button type="button" class="ghost" data-act="wipe">Apagar ranking</button>
+      </div>
+      <p class="rk-note">O código leva os jogadores, o histórico de cada um e o de cada deck. Quem importa <b>mescla</b> pelo horário da última alteração: importar duas vezes o mesmo código não soma nada.</p>
+    </div>`;
+  if($("rkCode"))$("rkCode").value=rkCodeText;
+}
+function rkSelectPlayer(id){
+  const p=rkStore().players.find(x=>x.id===id);
+  rkEdit=id;
+  rkEditColor=p?p.color:"";
+  rkRenderGroup();
+}
+function rkAddPlayer(){
+  const inp=$("rkNewName");
+  const name=String(inp&&inp.value||"").trim().slice(0,18);
+  if(!name){rkMsg("Digite o nome do jogador.","err");return}
+  const all=rkStore();
+  if(all.players.some(x=>rkNorm(x.name)===rkNorm(name))){rkMsg(`${name} já está cadastrado.`,"err");return}
+  const p={id:rkUid(),name,color:"",w:0,l:0,d:0,t:Date.now(),decks:[]};
+  all.players.push(p);
+  rkSave(all);
+  rkEdit=p.id;rkEditColor="";
+  rkMsg(`${name} cadastrado.`,"ok");
+  rkRenderGroup();
+}
+function rkSavePlayer(){
+  const all=rkStore();
+  const p=all.players.find(x=>x.id===rkEdit);
+  if(!p){rkMsg("Escolha um jogador na lista.","err");return}
+  const name=String($("rkEditName").value||"").trim().slice(0,18);
+  if(!name){rkMsg("O nome não pode ficar vazio.","err");return}
+  const dup=all.players.find(x=>x.id!==p.id&&rkNorm(x.name)===rkNorm(name));
+  if(dup){rkMsg(`Já existe um jogador chamado "${name}".`,"err");return}
+  p.name=name;p.color=rkEditColor;
+  p.w=rkNum($("rkW").value);p.l=rkNum($("rkL").value);p.d=rkNum($("rkD").value);
+  p.t=Date.now();
+  rkSave(all);
+  rkMsg(`${name} atualizado.`,"ok");
+  rkRenderGroup();
+}
+function rkDelPlayer(){
+  const all=rkStore();
+  const p=all.players.find(x=>x.id===rkEdit);
+  if(!p)return;
+  if(!confirm(`Remover ${p.name} do ranking (apaga também o histórico dos decks dele)?`))return;
+  rkSave({v:1,players:all.players.filter(x=>x.id!==p.id)});
+  rkEdit="";rkEditColor="";
+  rkMsg(`${p.name} removido.`,"ok");
+  rkRenderGroup();
+}
+// ---------- Código de texto (exportar/importar entre aparelhos) ----------
+function b64u(str){
+  const bytes=new TextEncoder().encode(str);
+  let bin="";
+  bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function unb64u(str){
+  let s=String(str).replace(/-/g,"+").replace(/_/g,"/");
+  while(s.length%4)s+="=";
+  const bin=atob(s);
+  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function rkCode(){
+  const all=rkStore();
+  const payload={v:1,p:all.players.map(p=>({n:p.name,c:p.color,w:p.w,l:p.l,d:p.d,t:p.t,k:p.decks.map(d=>[d.name,d.w,d.l,d.d,d.t])}))};
+  return "DTR1:"+b64u(JSON.stringify(payload));
+}
+function rkDecode(raw){
+  const t=String(raw||"").replace(/\s+/g,"");
+  const i=t.indexOf("DTR1:");
+  if(i<0)return null;
+  try{
+    const j=JSON.parse(unb64u(t.slice(i+5)));
+    return j&&Array.isArray(j.p)?j:null;
+  }catch(_){return null}
+}
+function rkGenCode(){
+  rkCodeText=rkCode();
+  rkRenderGroup();
+  rkMsg(`Código gerado (${rkStore().players.length} jogador(es)). Mande no grupo.`,"ok");
+}
+async function rkCopyCode(){
+  if(!rkCodeText)rkGenCode();
+  const ta=$("rkCode");
+  if(!ta)return;
+  const txt=ta.value||rkCodeText;
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(txt);
+    else{
+      ta.focus();ta.select();ta.setSelectionRange(0,txt.length);
+      if(!document.execCommand("copy"))throw new Error("sem clipboard");
+    }
+  }catch(_){
+    rkMsg("Não consegui copiar aqui: o código já está selecionado, é só copiar.","err");
+    return;
+  }
+  rkMsg("Código copiado. Cole no grupo para os outros importarem.","ok");
+}
+function rkImportCode(){
+  const j=rkDecode($("rkCode").value||rkCodeText);
+  if(!j){rkMsg("Código inválido. Ele começa com DTR1: — cole o texto inteiro, sem cortar.","err");return}
+  const all=rkStore();
+  let novos=0,att=0;
+  j.p.forEach(inc=>{
+    const name=String(inc&&inc.n||"").trim().slice(0,18);
+    if(!name)return;
+    let p=all.players.find(x=>rkNorm(x.name)===rkNorm(name));
+    if(!p){p={id:rkUid(),name,color:"",w:0,l:0,d:0,t:0,decks:[]};all.players.push(p);novos++}
+    if(rkNum(inc.t)>(p.t||0)){
+      p.w=rkNum(inc.w);p.l=rkNum(inc.l);p.d=rkNum(inc.d);
+      p.color=COLORDER.filter(c=>String(inc.c||"").includes(c)).join("");
+      p.t=rkNum(inc.t);
+      att++;
+    }
+    (Array.isArray(inc.k)?inc.k:[]).forEach(row=>{
+      const dn=String(Array.isArray(row)?row[0]||"" : row&&row.name||"").trim().slice(0,60);
+      if(!dn)return;
+      const dk=rkDeckSlot(p,dn);
+      if(rkNum(Array.isArray(row)?row[4]:row&&row.t)>(dk.t||0)){
+        dk.w=rkNum(Array.isArray(row)?row[1]:row&&row.w);
+        dk.l=rkNum(Array.isArray(row)?row[2]:row&&row.l);
+        dk.d=rkNum(Array.isArray(row)?row[3]:row&&row.d);
+        dk.t=rkNum(Array.isArray(row)?row[4]:row&&row.t);
+      }
+    });
+  });
+  rkSave(all);
+  rkCodeText="";rkEdit="";rkEditColor="";
+  rkRenderGroup();
+  rkMsg(novos||att
+    ? `Ranking mesclado: ${novos} jogador(es) novo(s), ${att} atualizado(s).`
+    : "Nada mudou: esses dados já estavam aqui.","ok");
+}
+function rkWipe(){
+  if(!confirm("Apagar o ranking inteiro deste aparelho? Os jogadores e o histórico de todos saem daqui. Compartilhe o código antes, se quiser preservar."))return;
+  rkSave({v:1,players:[]});
+  rkGame=[];rkEdit="";rkEditColor="";rkOpen={};
+  rkMsg("Ranking apagado.","ok");
+  rkRenderGroup();
+}
+// ---------- Telas e eventos ----------
+function rkSetTab(tab){
+  rkTab=RK_TABS.includes(tab)?tab:"rank";
+  const panes={rank:"rkPaneRank",game:"rkPaneGame",group:"rkPaneGroup"};
+  RK_TABS.forEach(k=>$(panes[k]).classList.toggle("hidden",k!==rkTab));
+  [...$("rkTabs").children].forEach(b=>{
+    const on=b.dataset.tab===rkTab;
+    b.classList.toggle("active",on);
+    b.setAttribute("aria-selected",on?"true":"false");
+  });
+  rkMsg("");
+  if(rkTab==="rank")rkRenderRank();
+  else if(rkTab==="game")rkRenderGame();
+  else rkRenderGroup();
+}
+// Semente vinda da calculadora de vida: quem já estava na mesa entra marcado, e quem
+// já perdeu o comandante (21 de dano) chega com a derrota pré-marcada.
+function rkSeedFromLifeCalc(){
+  return lcPlayers.map(p=>({name:p.name,deck:(lcDeckById(p.deckId)||{}).name||"",res:p.out?"L":""}));
+}
+function openRanking(tab,seed){
+  rkEdit="";rkEditColor="";rkCodeText="";
+  rkGame=(tab==="game"&&Array.isArray(seed)&&seed.length)?seed.map(s=>rkNewRow(s.name,s.deck,s.res)):[];
+  $("rkModal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+  rkSetTab(tab||"rank");
+}
+function closeRanking(){
+  $("rkModal").classList.add("hidden");
+  rkGame=[];
+  const outrosAbertos=!$("lifeCalc").classList.contains("hidden")||!$("lcModal").classList.contains("hidden")||!$("statsBox").classList.contains("hidden");
+  if(!outrosAbertos)document.body.style.overflow="";
+}
+$("rankBtn").addEventListener("click",()=>openRanking("rank"));
+$("rkClose").addEventListener("click",closeRanking);
+$("rkModal").addEventListener("click",e=>{
+  if(e.target===$("rkModal")){closeRanking();return}
+  const tab=e.target.closest(".rk-tabs button");
+  if(tab){rkSetTab(tab.dataset.tab);return}
+  // Tocar na linha do jogador abre os decks dele. Fica antes do bloco de ações
+  // porque a linha não tem botões dentro (e o if(!act) abaixo abortaria antes).
+  const row=e.target.closest(".rk-row");
+  if(row){
+    const id=row.dataset.id;
+    rkOpen[id]=!rkOpen[id];
+    const box=row.nextElementSibling&&row.nextElementSibling.querySelector(".rk-decks");
+    if(box)box.classList.toggle("on",!!rkOpen[id]);
+    return;
+  }
+  const act=e.target.closest("[data-act]");
+  if(!act)return;
+  const a=act.dataset.act;
+  if(a==="goto-rank"){rkSetTab("rank");return}
+  if(a==="goto-group"){rkSetTab("group");return}
+  if(a==="goto-game"){rkSetTab("game");return}
+  if(a==="add-name"){rkAddGameName();return}
+  if(a==="add-player"){rkAddPlayer();return}
+  if(a==="save-player"){rkSavePlayer();return}
+  if(a==="del-player"){rkDelPlayer();return}
+  if(a==="gen-code"){rkGenCode();return}
+  if(a==="copy-code"){rkCopyCode();return}
+  if(a==="import-code"){rkImportCode();return}
+  if(a==="wipe"){rkWipe();return}
+  if(a==="save-game"){rkSaveGame();return}
+  if(a==="clear-game"){rkGame=[];rkRenderGame();return}
+  if(a==="del"){rkGame.splice(Number(act.closest(".rk-pick").dataset.i),1);rkRenderGame();return}
+  if(a==="res"){
+    const i=Number(act.closest(".rk-pick").dataset.i),r=rkGame[i];
+    if(!r)return;
+    r.res=r.res===act.dataset.r?"":act.dataset.r;
+    r.pick=true;
+    rkRenderGame();
+    return;
+  }
+  if(a==="edit"){rkSelectPlayer(act.dataset.id);return}
+  if(act.hasAttribute("data-c")){
+    const c=act.dataset.c;
+    rkEditColor=c==="0"?"":(rkEditColor.includes(c)?rkEditColor.replace(c,""):rkEditColor+c);
+    rkEditColor=COLORDER.filter(x=>rkEditColor.includes(x)).join("");
+    [...act.parentNode.children].forEach(b=>{
+      const k=b.dataset.c;
+      b.classList.toggle("active",k==="0"?!rkEditColor:rkEditColor.includes(k));
+    });
+  }
+});
+$("rkModal").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.matches&&t.matches('.rk-pickname input[data-act="pick"]')){
+    const r=rkGame[Number(t.closest(".rk-pick").dataset.i)];
+    if(r){r.pick=t.checked;rkRenderGame()}
+    return;
+  }
+  if(t.matches&&t.matches(".rk-decksel")){
+    const r=rkGame[Number(t.closest(".rk-pick").dataset.i)];
+    if(!r)return;
+    r.deck=t.value;
+    const saved=loadSavedDecks().find(d=>rkNorm(d.name)===rkNorm(r.deck));
+    r.color=saved?lcDeckColors(saved.id).colors.join(""):rkStore().players.find(x=>rkNorm(x.name)===rkNorm(r.name))?.color||"";
+    rkRenderGame();
+    return;
+  }
+  if(t.id==="rkCode")rkCodeText=t.value;
+});
+$("rkModal").addEventListener("input",e=>{
+  const t=e.target;
+  if(t.matches&&t.matches(".rk-decksel")){
+    const r=rkGame[Number(t.closest(".rk-pick").dataset.i)];
+    if(r)r.deck=t.value;
+  }
+  if(t.id==="rkCode")rkCodeText=t.value;
+});
+$("rkModal").addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  if(e.target.id==="rkGameName"){e.preventDefault();rkAddGameName();return}
+  if(e.target.id==="rkNewName"){e.preventDefault();rkAddPlayer();return}
+  if(e.target.id==="rkEditName"){e.preventDefault();rkSavePlayer()}
+});
+$("lcMenuRank").addEventListener("click",()=>{
+  closeLcDrawer();
+  if(lcPlayers.length)openRanking("game",rkSeedFromLifeCalc());
+  else openRanking("rank");
+});
+$("lcDefeatRank").addEventListener("click",()=>{
+  $("lcDefeat").classList.add("hidden");
+  openRanking("game",rkSeedFromLifeCalc());
+});
 document.querySelectorAll("#ptTabs .seg-btn").forEach(b=>b.addEventListener("click",()=>switchLangTab(b.dataset.lang)));
 // "Baixar app" só faz sentido no site. Dentro do app Android este mesmo HTML é
 // servido pelo WebView, e o MainActivity marca o User-Agent com "DeckTradutor/".
-// Escondemos o link e sem a classe has-dl a barra de baixo volta a ter 2 linhas.
+// Escondemos o link e, sem a classe has-dl, a Calculadora de Vida ocupa as duas
+// celulas que ele usava na 3ª fileira da barra de ações.
 try{
   if(/DeckTradutor\//.test(navigator.userAgent)){
     const dl=$("dlApp");
